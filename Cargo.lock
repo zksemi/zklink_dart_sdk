@@ -4921,7 +4921,7 @@ dependencies = [
 [[package]]
 name = "zklink_sdk_interface"
 version = "2.0.0"
-source = "git+https://git@github.com/zkLinkProtocol/zklink_sdk.git?branch=main#b1976433ee0f4a5d05f0d39b020d6b867d31f530"
+source = "git+https://github.com/zkLinkProtocol/zklink_sdk.git?branch=main#b1976433ee0f4a5d05f0d39b020d6b867d31f530"
 dependencies = [
  "cfg-if 1.0.0",
  "thiserror",
@@ -4933,7 +4933,7 @@ dependencies = [
 [[package]]
 name = "zklink_sdk_signers"
 version = "1.0.0"
-source = "git+https://git@github.com/zkLinkProtocol/zklink_sdk.git?branch=main#b1976433ee0f4a5d05f0d39b020d6b867d31f530"
+source = "git+https://github.com/zkLinkProtocol/zklink_sdk.git?branch=main#b1976433ee0f4a5d05f0d39b020d6b867d31f530"
 dependencies = [
  "ethers",
  "ethers_primitives",
@@ -4959,7 +4959,7 @@ dependencies = [
 [[package]]
 name = "zklink_sdk_types"
 version = "2.0.0"
-source = "git+https://git@github.com/zkLinkProtocol/zklink_sdk.git?branch=main#b1976433ee0f4a5d05f0d39b020d6b867d31f530"
+source = "git+https://github.com/zkLinkProtocol/zklink_sdk.git?branch=main#b1976433ee0f4a5d05f0d39b020d6b867d31f530"
 dependencies = [
  "cfg-if 1.0.0",
  "ethers",
@@ -4978,7 +4978,7 @@ dependencies = [
 [[package]]
 name = "zklink_sdk_utils"
 version = "2.0.0"
-source = "git+https://git@github.com/zkLinkProtocol/zklink_sdk.git?branch=main#b1976433ee0f4a5d05f0d39b020d6b867d31f530"
+source = "git+https://github.com/zkLinkProtocol/zklink_sdk.git?branch=main#b1976433ee0f4a5d05f0d39b020d6b867d31f530"
 dependencies = [
  "hex",
  "num",
