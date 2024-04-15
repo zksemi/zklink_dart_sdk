@@ -13,3 +13,8 @@ anyhow = "1.0"
 zklink_sdk_types = { git = "https://github.com/zkLinkProtocol/zklink_sdk.git", branch = "main" }
 zklink_sdk_signers = { git = "https://github.com/zkLinkProtocol/zklink_sdk.git", branch = "main" }
 zklink_sdk_interface = { git = "https://github.com/zkLinkProtocol/zklink_sdk.git", branch = "main" }
+
+[profile.release]
+strip = "symbols"
+lto = "fat"
+opt-level = 3
