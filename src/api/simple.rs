@@ -6,7 +6,6 @@ use flutter_rust_bridge::frb;
 use zklink_sdk_signers::eth_signer::H256;
 use zklink_sdk_signers::{eth_signer::PackedEthSignature, zklink_signer::PubKeyHash};
 use zklink_sdk_types::basic_types::ZkLinkAddress;
-use zklink_sdk_types::error::TypeError::{DecodeFromHexErr, InvalidBigIntStr};
 use zklink_sdk_types::tx_builder::*;
 use zklink_sdk_types::tx_type::change_pubkey::Create2Data;
 use zklink_sdk_types::tx_type::contract::*;
@@ -17,6 +16,8 @@ use zklink_sdk_types::tx_type::withdraw::Withdraw;
 use zklink_sdk_types::{basic_types::BigUint, tx_type::change_pubkey::ChangePubKey};
 use zklink_sdk_types::prelude::ChangePubKeyBuilder;
 use zklink_sdk_interface::signer::{Signer, L1SignerType};
+use zklink_sdk_wallet::eth::EthTxOption;
+use zklink_sdk_wallet::wallet::Wallet;
 
 #[frb(sync)]
 pub fn eth_signer(eth_private_key: String) -> Result<Signer> {
@@ -64,7 +65,7 @@ pub fn change_pub_key(
         sub_account_id: sub_account_id.into(),
         new_pubkey_hash: PubKeyHash::from_hex(&new_pubkey_hash)?,
         fee_token: fee_token.into(),
-        fee: BigUint::from_str(&fee).map_err(|e| InvalidBigIntStr(e.to_string()))?,
+        fee: BigUint::from_str(&fee)?,
         nonce: nonce.into(),
         eth_signature,
         timestamp: ts.into(),
@@ -79,6 +80,33 @@ pub fn get_pubkey(signer: Signer) -> String {
 #[frb(sync)]
 pub fn get_pubkey_hash(signer: Signer) -> String {
     signer.pubkey_hash().as_hex()
+}
+
+#[frb(sync)]
+pub fn to_eip712_request_payload(
+    tx: ChangePubKey,
+    chain_id: u32,
+    address: String,
+) -> Result<String> {
+    let eth_data = tx.to_eip712_request_payload(
+        chain_id,
+        &ZkLinkAddress::from_hex(&address)?,
+    )?;
+    Ok(to_string(&eth_data)?)
+}
+
+#[frb(sync)]
+pub fn get_eth_sign_msg(
+    tx: ChangePubKey,
+    nonce: u32,
+    account_id: u32,
+) -> String {
+    format!(
+        "ChangePubKey\nPubKeyHash: {}\nNonce: {}\nAccountId: {}",
+        tx.new_pk_hash.as_hex(),
+        nonce,
+        account_id
+    )
 }
 
 #[frb(sync)]
@@ -139,10 +167,10 @@ pub fn transfer(
         from_sub_account_id: from_sub_account_id.into(),
         to_sub_account_id: to_sub_account_id.into(),
         token: token.into(),
-        fee: BigUint::from_str(&fee).map_err(|e| InvalidBigIntStr(e.to_string()))?,
+        fee: BigUint::from_str(&fee)?,
         nonce: nonce.into(),
         timestamp: ts.into(),
-        amount: BigUint::from_str(&amount).map_err(|e| InvalidBigIntStr(e.to_string()))?,
+        amount: BigUint::from_str(&amount)?,
     }.build())
 }
 
@@ -180,7 +208,7 @@ pub fn withdraw(
         Instant::now().elapsed().as_secs() as u32
     };
     let data_hash = if let Some(data_hash) = data_hash {
-        Some(H256::from_str(&data_hash).map_err(|e| DecodeFromHexErr(e.to_string()))?)
+        Some(H256::from_str(&data_hash)?)
     } else {
         None
     };
@@ -191,9 +219,9 @@ pub fn withdraw(
         to_address: ZkLinkAddress::from_hex(&to_address)?,
         l2_source_token: l2_source_token.into(),
         l1_target_token: l1_target_token.into(),
-        amount: BigUint::from_str(&amount).map_err(|e| InvalidBigIntStr(e.to_string()))?,
+        amount: BigUint::from_str(&amount)?,
         data_hash,
-        fee: BigUint::from_str(&fee).map_err(|e| InvalidBigIntStr(e.to_string()))?,
+        fee: BigUint::from_str(&fee)?,
         nonce: nonce.into(),
         withdraw_to_l1,
         withdraw_fee_ratio,
@@ -243,7 +271,7 @@ pub fn forced_exit(
         initiator_nonce: initiator_nonce.into(),
         target_sub_account_id: target_sub_account_id.into(),
         withdraw_to_l1,
-        exit_amount: BigUint::from_str(&exit_amount).map_err(|e| InvalidBigIntStr(e.to_string()))?,
+        exit_amount: BigUint::from_str(&exit_amount)?,
     }.build())
 }
 
@@ -257,7 +285,7 @@ pub fn sign_forced_exit(signer: Signer, tx: ForcedExit) -> Result<String> {
 pub fn contract_price(pair_id: u16, market_price: String) -> Result<ContractPrice> {
     Ok(ContractPrice {
         pair_id: pair_id.into(),
-        market_price: BigUint::from_str(&market_price).map_err(|e| InvalidBigIntStr(e.to_string()))?,
+        market_price: BigUint::from_str(&market_price)?,
     })
 }
 
@@ -265,7 +293,7 @@ pub fn contract_price(pair_id: u16, market_price: String) -> Result<ContractPric
 pub fn spot_price(token_id: u32, price: String) -> Result<SpotPriceInfo> {
     Ok(SpotPriceInfo {
         token_id: token_id.into(),
-        price: BigUint::from_str(&price).map_err(|e| InvalidBigIntStr(e.to_string()))?,
+        price: BigUint::from_str(&price)?,
     })
 }
 
@@ -291,8 +319,8 @@ pub fn order(
         nonce: nonce.into(),
         base_token_id: base_token_id.into(),
         quote_token_id: quote_token_id.into(),
-        amount: BigUint::from_str(&amount).map_err(|e| InvalidBigIntStr(e.to_string()))?,
-        price: BigUint::from_str(&price).map_err(|e| InvalidBigIntStr(e.to_string()))?,
+        amount: BigUint::from_str(&amount)?,
+        price: BigUint::from_str(&price)?,
         is_sell: is_sell as u8,
         fee_rates: [maker_fee_rate, taker_fee_rate],
         has_subsidy: has_subsidy as u8,
@@ -317,13 +345,13 @@ pub fn order_matching(
         account_id: account_id.into(),
         sub_account_id: sub_account_id.into(),
         taker,
-        fee: BigUint::from_str(&fee).map_err(|e| InvalidBigIntStr(e.to_string()))?,
+        fee: BigUint::from_str(&fee)?,
         fee_token: fee_token.into(),
         expect_base_amount: BigUint::from_str(&expect_base_amount)
-            .map_err(|e| InvalidBigIntStr(e.to_string()))?,
+            ?,
         maker,
         expect_quote_amount: BigUint::from_str(&expect_quote_amount)
-            .map_err(|e| InvalidBigIntStr(e.to_string()))?,
+            ?,
         contract_prices,
         margin_prices,
     }.build())
@@ -360,8 +388,8 @@ pub fn contract(
         slot_id: slot_id.into(),
         nonce: nonce.into(),
         pair_id: pair_id.into(),
-        size: BigUint::from_str(&size).map_err(|e| InvalidBigIntStr(e.to_string()))?,
-        price: BigUint::from_str(&price).map_err(|e| InvalidBigIntStr(e.to_string()))?,
+        size: BigUint::from_str(&size)?,
+        price: BigUint::from_str(&price)?,
         direction,
         maker_fee_rate,
         taker_fee_rate,
@@ -385,7 +413,7 @@ pub fn contract_matching(
         sub_account_id: sub_account_id.into(),
         taker,
         maker,
-        fee: BigUint::from_str(&fee).map_err(|e| InvalidBigIntStr(e.to_string()))?,
+        fee: BigUint::from_str(&fee)?,
         fee_token: fee_token.into(),
         contract_prices,
         margin_prices,
@@ -425,9 +453,9 @@ pub fn auto_eleveraging(
         margin_prices,
         adl_account_id: adl_account_id.into(),
         pair_id: pair_id.into(),
-        adl_size: BigUint::from_str(&adl_size).map_err(|e| InvalidBigIntStr(e.to_string()))?,
-        adl_price: BigUint::from_str(&adl_price).map_err(|e| InvalidBigIntStr(e.to_string()))?,
-        fee: BigUint::from_str(&fee).map_err(|e| InvalidBigIntStr(e.to_string()))?,
+        adl_size: BigUint::from_str(&adl_size)?,
+        adl_price: BigUint::from_str(&adl_price)?,
+        fee: BigUint::from_str(&fee)?,
         fee_token: fee_token.into(),
     }.build())
 }
@@ -455,7 +483,7 @@ pub fn funding(
         account_id: account_id.into(),
         sub_account_id: sub_account_id.into(),
         sub_account_nonce: sub_account_nonce.into(),
-        fee: BigUint::from_str(&fee).map_err(|e| InvalidBigIntStr(e.to_string()))?,
+        fee: BigUint::from_str(&fee)?,
         fee_token: fee_token.into(),
         funding_account_ids,
     }.build())
@@ -485,7 +513,7 @@ pub fn liquidation(
         contract_prices,
         margin_prices,
         liquidation_account_id: liquidation_account_id.into(),
-        fee: BigUint::from_str(&fee).map_err(|e| InvalidBigIntStr(e.to_string()))?,
+        fee: BigUint::from_str(&fee)?,
         fee_token: fee_token.into(),
     }.build())
 }
@@ -520,7 +548,7 @@ pub fn parameter_margin_info(margin_id: u8, symbol: String, token_id: u32, ratio
 pub fn parameter_funding_info(pair_id: u16, price: String, funding_rate: i16) -> Result<FundingInfo> {
     Ok(FundingInfo {
         pair_id: pair_id.into(),
-        price: BigUint::from_str(&price).map_err(|e| InvalidBigIntStr(e.to_string()))?,
+        price: BigUint::from_str(&price)?,
         funding_rate,
     })
 }
@@ -551,14 +579,180 @@ pub fn update_global_var(
     sub_account_id: u8,
     parameter: Parameter,
     serial_id: f64,
-) -> Result<String> {
-    let tx = UpdateGlobalVarBuilder {
+) -> Result<UpdateGlobalVar> {
+    Ok(UpdateGlobalVarBuilder {
         from_chain_id: from_chain_id.into(),
         sub_account_id: sub_account_id.into(),
         parameter: parameter.into(),
         serial_id: serial_id as u64,
-    }.build();
-    Ok(to_string(&tx)?)
+    }.build())
+}
+
+macro_rules! jsonstr {
+    ($func:ident, $tx_type:tt) => {
+        #[frb(sync)]
+        pub fn $func(tx: $tx_type) -> Result<String> {
+            Ok(to_string(&tx)?)
+        }
+    }
+}
+
+jsonstr!(to_json_change_pub_key, ChangePubKey);
+jsonstr!(to_json_transfer, Transfer);
+jsonstr!(to_json_withdraw, Withdraw);
+jsonstr!(to_json_forced_exit, ForcedExit);
+jsonstr!(to_json_order_matching, OrderMatching);
+jsonstr!(to_json_contract_matching, ContractMatching);
+jsonstr!(to_json_auto_eleveraging, AutoDeleveraging);
+jsonstr!(to_json_funding, Funding);
+jsonstr!(to_json_liquidation, Liquidation);
+jsonstr!(to_json_update_global_var, UpdateGlobalVar);
+
+#[frb(sync)]
+pub fn eth_tx_option(
+    is_support_eip1559: bool,
+    to: String,
+    nonce: Option<f64>,
+    value: Option<String>,
+    gas: Option<f64>,
+    gas_price: Option<String>,
+) -> Result<EthTxOption> {
+    let value = if let Some(v) = value {
+        Some(BigUint::from_str(&v)?)
+    } else {
+        None
+    };
+    let gas_price = if let Some(g) = gas_price {
+        Some(BigUint::from_str(&g)?)
+    } else {
+        None
+    };
+    Ok(EthTxOption {
+        is_support_eip1559,
+        to: ZkLinkAddress::from_hex(&to)?,
+        nonce: nonce.map(|n| n as u64),
+        value,
+        gas: gas.map(|g| g as u64),
+        gas_price,
+    })
+}
+
+#[frb(sync)]
+pub fn wallet(url: String, private_key: String) -> Result<Wallet> {
+    Ok(Wallet::new(&url, &private_key))
+}
+
+pub async fn get_balance(wallet: Wallet) -> Result<String> {
+    let balance = wallet.get_balance().await?;
+    Ok(balance.to_string())
+}
+
+pub async fn get_nonce(wallet: Wallet, block_number: String) -> Result<f64> {
+    let nonce = wallet.get_nonce(block_number).await?;
+    Ok(nonce.as_u64() as f64)
+}
+
+pub async fn get_deposit_fee(wallet: Wallet, eth_params: EthTxOption) -> Result<String> {
+    let fee = wallet.get_fee(eth_params).await?;
+    Ok(fee.to_string())
+}
+
+pub async fn wait_for_transaction(
+    wallet: Wallet,
+    tx_hash: String,
+    timeout: Option<u32>,
+) -> Result<u8> {
+    let tx_hash = H256::from_str(&tx_hash)?;
+    let status = wallet.wait_for_transaction(tx_hash, timeout).await?;
+    Ok(status as u8)
+}
+
+pub async fn approve_erc20(
+    wallet: Wallet,
+    contract: String,
+    amount: String,
+    eth_params: EthTxOption,
+) -> Result<String> {
+    let contract = ZkLinkAddress::from_hex(&contract)?;
+    let amount = BigUint::from_str(&amount)?;
+    let tx_hash = wallet.approve_erc20(contract, amount, eth_params).await?;
+    Ok(hex::encode(tx_hash.as_bytes()))
+}
+
+pub async fn deposit_erc20(
+    wallet: Wallet,
+    sub_account_id: u8,
+    deposit_to: String,
+    token_addr: String,
+    amount: String,
+    mapping: bool,
+    eth_params: EthTxOption,
+    is_gateway: bool,
+) -> Result<String> {
+    let deposit_to = ZkLinkAddress::from_hex(&deposit_to)?;
+    let token_addr = ZkLinkAddress::from_hex(&token_addr)?;
+    let amount = BigUint::from_str(&amount)?;
+    let tx_hash = if !is_gateway {
+        wallet.deposit_erc20_to_layer1(
+            sub_account_id,
+            deposit_to,
+            token_addr,
+            amount,
+            mapping,
+            eth_params,
+        )
+        .await?
+    } else {
+        wallet.deposit_erc20_to_gateway(
+            sub_account_id,
+            deposit_to,
+            token_addr,
+            amount,
+            mapping,
+            eth_params,
+        )
+        .await?
+    };
+    Ok(hex::encode(tx_hash.as_bytes()))
+}
+
+pub async fn deposit_eth(
+    wallet: Wallet,
+    sub_account_id: u8,
+    deposit_to: String,
+    eth_params: EthTxOption,
+    is_gateway: bool,
+) -> Result<String> {
+    let deposit_to = ZkLinkAddress::from_hex(&deposit_to)?;
+    let tx_hash = if !is_gateway {
+        wallet.deposit_eth_to_layer1(sub_account_id, deposit_to, eth_params).await?
+    } else {
+        wallet.deposit_eth_to_gateway(sub_account_id, deposit_to, eth_params).await?
+    };
+    Ok(hex::encode(tx_hash.as_bytes()))
+}
+
+pub async fn set_auth_pubkey_hash(
+    wallet: Wallet,
+    nonce: f64,
+    new_pubkey_hash: String,
+    eth_params: EthTxOption,
+) -> Result<String> {
+    let new_pubkey_hash = PubKeyHash::from_hex(&new_pubkey_hash)?;
+    let tx_hash = wallet.set_auth_pubkey_hash(nonce as u64, new_pubkey_hash, eth_params).await?;
+    Ok(hex::encode(tx_hash.as_bytes()))
+}
+
+pub async fn full_exit(
+    wallet: Wallet,
+    account_id: u32,
+    sub_account_id: u8,
+    token_id: u16,
+    mapping: bool,
+    eth_params: EthTxOption,
+) -> Result<String> {
+    let tx_hash = wallet.full_exit(account_id, sub_account_id, token_id, mapping, eth_params).await?;
+    Ok(hex::encode(tx_hash.as_bytes()))
 }
 
 #[frb(init)]
