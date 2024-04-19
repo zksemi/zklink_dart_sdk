@@ -7,7 +7,7 @@ use zklink_sdk_signers::eth_signer::H256;
 use zklink_sdk_signers::starknet_signer::StarkEcdsaSignature;
 use zklink_sdk_signers::zklink_signer::ZkLinkSigner;
 use zklink_sdk_signers::{eth_signer::PackedEthSignature, zklink_signer::PubKeyHash};
-use zklink_sdk_types::basic_types::ZkLinkAddress;
+use zklink_sdk_types::basic_types::{GetBytes, ZkLinkAddress};
 use zklink_sdk_types::tx_builder::*;
 use zklink_sdk_types::tx_type::change_pubkey::{ChangePubKeyAuthData, Create2Data};
 use zklink_sdk_types::tx_type::contract::*;
@@ -20,6 +20,22 @@ use zklink_sdk_types::prelude::ChangePubKeyBuilder;
 use zklink_sdk_interface::signer::{Signer, L1SignerType};
 use zklink_sdk_wallet::eth::EthTxOption;
 use zklink_sdk_wallet::wallet::Wallet;
+
+macro_rules! tx_default {
+    () => {
+        #[frb(sync)]
+        pub fn sign(&mut self, zklink_signer: FFIZkLinkSigner) -> Result<()> {
+            self.inner.signature = zklink_signer.inner.sign_musig(&self.inner.get_bytes())?;
+            Ok(())
+        }
+
+        #[frb(sync)]
+        pub fn to_json(&self) -> Result<String> {
+            Ok(to_string(&self.inner)?)
+        }
+    }
+}
+
 
 #[frb(opaque)]
 pub struct FFIZkLinkSigner {
@@ -150,8 +166,8 @@ impl FFISigner {
     }
 
     #[frb(sync)]
-    pub fn create_signed_order(&self, order: Order) -> Result<Order> {
-        Ok(self.inner.create_signed_order(&order)?)
+    pub fn create_signed_order(&self, order: FFIOrder) -> Result<FFIOrder> {
+        Ok(FFIOrder {inner: self.inner.create_signed_order(&order.inner)?})
     }
 
     #[frb(sync)]
@@ -161,8 +177,8 @@ impl FFISigner {
     }
 
     #[frb(sync)]
-    pub fn create_signed_contract(&self, contract: Contract) -> Result<Contract> {
-        Ok(self.inner.create_signed_contract(&contract)?)
+    pub fn create_signed_contract(&self, contract: FFIContract) -> Result<FFIContract> {
+        Ok(FFIContract {inner: self.inner.create_signed_contract(&contract.inner)?})
     }
     
     #[frb(sync)]
@@ -261,22 +277,14 @@ impl FFIChangePubKey {
     }
 
     #[frb(sync)]
-    pub fn set_eth_authdata(&mut self, sig: String) -> Result<()> {
+    pub fn set_eth_auth_data(&mut self, sig: String) -> Result<()> {
         let eth_signature = PackedEthSignature::from_hex(&sig)?;
         let eth_authdata = ChangePubKeyAuthData::EthECDSA { eth_signature };
         self.inner.eth_auth_data = eth_authdata;
         Ok(())
     }
 
-    #[frb(sync)]
-    pub fn sign(&mut self, zklink_signer: FFIZkLinkSigner) -> Result<()> {
-        Ok(self.inner.sign(&zklink_signer.inner)?)
-    }
-
-    #[frb(sync)]
-    pub fn to_json(&self) -> Result<String> {
-        Ok(to_string(&self.inner)?)
-    }
+    tx_default!();
 }
 
 #[frb(opaque)]
@@ -318,9 +326,11 @@ impl FFITransfer {
     }
 
     #[frb(sync)]
-    pub fn to_json(&self) -> Result<String> {
-        Ok(to_string(&self.inner)?)
+    pub fn get_eth_sign_msg(&self, token_symbol: String) -> String {
+        self.inner.get_eth_sign_msg(&token_symbol)
     }
+
+    tx_default!();
 }
 
 #[frb(opaque)]
@@ -375,9 +385,11 @@ impl FFIWithdraw {
     }
 
     #[frb(sync)]
-    pub fn to_json(&self) -> Result<String> {
-        Ok(to_string(&self.inner)?)
+    pub fn get_eth_sign_msg(&self, token_symbol: String) -> String {
+        self.inner.get_eth_sign_msg(&token_symbol)
     }
+
+    tx_default!();
 }
 
 #[frb(opaque)]
@@ -422,57 +434,81 @@ impl FFIForcedExit {
         })
     }
 
+    tx_default!();
+}
+
+#[frb(opaque)]
+pub struct FFIContractPrice {
+    pub inner: ContractPrice
+}
+
+impl FFIContractPrice {
     #[frb(sync)]
-    pub fn to_json(&self) -> Result<String> {
-        Ok(to_string(&self.inner)?)
+    pub fn new(pair_id: u16, market_price: String) -> Result<Self> {
+        Ok(Self {
+            inner: ContractPrice {
+                pair_id: pair_id.into(),
+                market_price: BigUint::from_str(&market_price)?,
+            }
+        })
     }
 }
 
-#[frb(sync)]
-pub fn contract_price(pair_id: u16, market_price: String) -> Result<ContractPrice> {
-    Ok(ContractPrice {
-        pair_id: pair_id.into(),
-        market_price: BigUint::from_str(&market_price)?,
-    })
+#[frb(opaque)]
+pub struct FFISpotPriceInfo {
+    pub inner: SpotPriceInfo
 }
 
-#[frb(sync)]
-pub fn spot_price(token_id: u32, price: String) -> Result<SpotPriceInfo> {
-    Ok(SpotPriceInfo {
-        token_id: token_id.into(),
-        price: BigUint::from_str(&price)?,
-    })
+impl FFISpotPriceInfo {
+    #[frb(sync)]
+    pub fn new(token_id: u32, price: String) -> Result<Self> {
+        Ok(Self {
+            inner: SpotPriceInfo {
+                token_id: token_id.into(),
+                price: BigUint::from_str(&price)?,
+            }
+        })
+    }
 }
 
-#[frb(sync)]
-pub fn order(
-    account_id: u32,
-    sub_account_id: u8,
-    slot_id: u32,
-    nonce: u32,
-    base_token_id: u32,
-    quote_token_id: u32,
-    amount: String,
-    price: String,
-    is_sell: bool,
-    maker_fee_rate: u8,
-    taker_fee_rate: u8,
-    has_subsidy: bool,
-) -> Result<Order> {
-    Ok(Order {
-        account_id: account_id.into(),
-        sub_account_id: sub_account_id.into(),
-        slot_id: slot_id.into(),
-        nonce: nonce.into(),
-        base_token_id: base_token_id.into(),
-        quote_token_id: quote_token_id.into(),
-        amount: BigUint::from_str(&amount)?,
-        price: BigUint::from_str(&price)?,
-        is_sell: is_sell as u8,
-        fee_rates: [maker_fee_rate, taker_fee_rate],
-        has_subsidy: has_subsidy as u8,
-        signature: Default::default(),
-    })
+#[frb(opaque)]
+pub struct FFIOrder {
+    pub inner: Order
+}
+
+impl FFIOrder {
+    #[frb(sync)]
+    pub fn order(
+        account_id: u32,
+        sub_account_id: u8,
+        slot_id: u32,
+        nonce: u32,
+        base_token_id: u32,
+        quote_token_id: u32,
+        amount: String,
+        price: String,
+        is_sell: bool,
+        maker_fee_rate: u8,
+        taker_fee_rate: u8,
+        has_subsidy: bool,
+    ) -> Result<Self> {
+        Ok(Self {
+            inner: Order {
+                account_id: account_id.into(),
+                sub_account_id: sub_account_id.into(),
+                slot_id: slot_id.into(),
+                nonce: nonce.into(),
+                base_token_id: base_token_id.into(),
+                quote_token_id: quote_token_id.into(),
+                amount: BigUint::from_str(&amount)?,
+                price: BigUint::from_str(&price)?,
+                is_sell: is_sell as u8,
+                fee_rates: [maker_fee_rate, taker_fee_rate],
+                has_subsidy: has_subsidy as u8,
+                signature: Default::default(),
+            }
+        })
+    }
 }
 
 #[frb(opaque)]
@@ -485,24 +521,32 @@ impl FFIOrderMatching {
     pub fn new(
         account_id: u32,
         sub_account_id: u8,
-        taker: Order,
-        maker: Order,
+        taker: FFIOrder,
+        maker: FFIOrder,
         fee: String,
         fee_token: u32,
-        contract_prices: Vec<ContractPrice>,
-        margin_prices: Vec<SpotPriceInfo>,
+        contract_prices: Vec<FFIContractPrice>,
+        margin_prices: Vec<FFISpotPriceInfo>,
         expect_base_amount: String,
         expect_quote_amount: String,
     ) -> Result<Self> {
+        let contract_prices = contract_prices
+            .iter()
+            .map(|e| e.inner.clone())
+            .collect();
+        let margin_prices = margin_prices
+            .iter()
+            .map(|e| e.inner.clone())
+            .collect();
         Ok(Self { 
             inner: OrderMatchingBuilder {
                 account_id: account_id.into(),
                 sub_account_id: sub_account_id.into(),
-                taker,
+                taker: taker.inner,
                 fee: BigUint::from_str(&fee)?,
                 fee_token: fee_token.into(),
                 expect_base_amount: BigUint::from_str(&expect_base_amount)?,
-                maker,
+                maker: maker.inner,
                 expect_quote_amount: BigUint::from_str(&expect_quote_amount)?,
                 contract_prices,
                 margin_prices,
@@ -510,39 +554,45 @@ impl FFIOrderMatching {
         })
     }
 
-    #[frb(sync)]
-    pub fn to_json(&self) -> Result<String> {
-        Ok(to_string(&self.inner)?)
-    }
+    tx_default!();
 }
 
-#[frb(sync)]
-pub fn contract(
-    account_id: u32,
-    sub_account_id: u8,
-    slot_id: u32,
-    nonce: u32,
-    pair_id: u16,
-    size: String,
-    price: String,
-    direction: bool,
-    maker_fee_rate: u8,
-    taker_fee_rate: u8,
-    has_subsidy: bool,
-) -> Result<Contract> {
-    Ok(ContractBuilder {
-        account_id: account_id.into(),
-        sub_account_id: sub_account_id.into(),
-        slot_id: slot_id.into(),
-        nonce: nonce.into(),
-        pair_id: pair_id.into(),
-        size: BigUint::from_str(&size)?,
-        price: BigUint::from_str(&price)?,
-        direction,
-        maker_fee_rate,
-        taker_fee_rate,
-        has_subsidy,
-    }.build())
+#[frb(opaque)]
+pub struct FFIContract {
+    pub inner: Contract
+}
+
+impl FFIContract {
+    #[frb(sync)]
+    pub fn new(
+        account_id: u32,
+        sub_account_id: u8,
+        slot_id: u32,
+        nonce: u32,
+        pair_id: u16,
+        size: String,
+        price: String,
+        direction: bool,
+        maker_fee_rate: u8,
+        taker_fee_rate: u8,
+        has_subsidy: bool,
+    ) -> Result<Self> {
+        Ok(Self {
+            inner: ContractBuilder {
+                account_id: account_id.into(),
+                sub_account_id: sub_account_id.into(),
+                slot_id: slot_id.into(),
+                nonce: nonce.into(),
+                pair_id: pair_id.into(),
+                size: BigUint::from_str(&size)?,
+                price: BigUint::from_str(&price)?,
+                direction,
+                maker_fee_rate,
+                taker_fee_rate,
+                has_subsidy,
+            }.build()
+        })
+    }
 }
 
 #[frb(opaque)]
@@ -555,18 +605,30 @@ impl FFIContractMatching {
     pub fn new(
         account_id: u32,
         sub_account_id: u8,
-        taker: Contract,
-        maker: Vec<Contract>,
+        taker: FFIContract,
+        maker: Vec<FFIContract>,
         fee: String,
         fee_token: u16,
-        contract_prices: Vec<ContractPrice>,
-        margin_prices: Vec<SpotPriceInfo>,
+        contract_prices: Vec<FFIContractPrice>,
+        margin_prices: Vec<FFISpotPriceInfo>,
     ) -> Result<Self> {
+        let maker = maker
+            .iter()
+            .map(|e| e.inner.clone())
+            .collect();
+        let contract_prices = contract_prices
+            .iter()
+            .map(|e| e.inner.clone())
+            .collect();
+        let margin_prices = margin_prices
+            .iter()
+            .map(|e| e.inner.clone())
+            .collect();
         Ok(Self { 
             inner: ContractMatchingBuilder {
                 account_id: account_id.into(),
                 sub_account_id: sub_account_id.into(),
-                taker,
+                taker: taker.inner,
                 maker,
                 fee: BigUint::from_str(&fee)?,
                 fee_token: fee_token.into(),
@@ -576,10 +638,7 @@ impl FFIContractMatching {
         })
     }
 
-    #[frb(sync)]
-    pub fn to_json(&self) -> Result<String> {
-        Ok(to_string(&self.inner)?)
-    }
+    tx_default!();
 }
 
 #[frb(opaque)]
@@ -593,8 +652,8 @@ impl FFIAutoDeleveraging {
         account_id: u32,
         sub_account_id: u8,
         sub_account_nonce: u32,
-        contract_prices: Vec<ContractPrice>,
-        margin_prices: Vec<SpotPriceInfo>,
+        contract_prices: Vec<FFIContractPrice>,
+        margin_prices: Vec<FFISpotPriceInfo>,
         adl_account_id: u32,
         pair_id: u16,
         adl_size: String,
@@ -602,6 +661,14 @@ impl FFIAutoDeleveraging {
         fee: String,
         fee_token: u16,
     ) -> Result<Self> {
+        let contract_prices = contract_prices
+            .iter()
+            .map(|e| e.inner.clone())
+            .collect();
+        let margin_prices = margin_prices
+            .iter()
+            .map(|e| e.inner.clone())
+            .collect();
         Ok(Self { 
             inner: AutoDeleveragingBuilder {
                 account_id: account_id.into(),
@@ -619,10 +686,7 @@ impl FFIAutoDeleveraging {
         })
     }
 
-    #[frb(sync)]
-    pub fn to_json(&self) -> Result<String> {
-        Ok(to_string(&self.inner)?)
-    }
+    tx_default!();
 }
 
 #[frb(opaque)]
@@ -656,10 +720,7 @@ impl FFIFunding {
         })
     }
 
-    #[frb(sync)]
-    pub fn to_json(&self) -> Result<String> {
-        Ok(to_string(&self.inner)?)
-    }
+    tx_default!();
 }
 
 #[frb(opaque)]
@@ -673,12 +734,20 @@ impl FFILiquidation {
         account_id: u32,
         sub_account_id: u8,
         sub_account_nonce: u32,
-        contract_prices: Vec<ContractPrice>,
-        margin_prices: Vec<SpotPriceInfo>,
+        contract_prices: Vec<FFIContractPrice>,
+        margin_prices: Vec<FFISpotPriceInfo>,
         liquidation_account_id: u32,
         fee: String,
         fee_token: u16,
     ) -> Result<Self> {
+        let contract_prices = contract_prices
+            .iter()
+            .map(|e| e.inner.clone())
+            .collect();
+        let margin_prices = margin_prices
+            .iter()
+            .map(|e| e.inner.clone())
+            .collect();
         Ok(Self { 
             inner: LiquidationBuilder {
                 account_id: account_id.into(),
@@ -693,59 +762,80 @@ impl FFILiquidation {
         })
     }
 
+    tx_default!();
+}
+
+#[frb(opaque)]
+pub struct FFIFundingInfo {
+    pub inner: FundingInfo
+}
+
+impl FFIFundingInfo {
     #[frb(sync)]
-    pub fn to_json(&self) -> Result<String> {
-        Ok(to_string(&self.inner)?)
+    pub fn new(pair_id: u16, price: String, funding_rate: i16) -> Result<Self> {
+        Ok(Self { 
+            inner: FundingInfo {
+                pair_id: pair_id.into(),
+                price: BigUint::from_str(&price)?,
+                funding_rate,
+            }
+        })
     }
 }
 
-#[frb(sync)]
-pub fn parameter_fee_account(account_id: u32) -> Result<Parameter> {
-    Ok(Parameter::FeeAccount { account_id: account_id.into() })
+#[frb(opaque)]
+pub struct FFIParameter {
+    pub inner: Parameter
 }
 
-#[frb(sync)]
-pub fn parameter_insurance_fund_account(account_id: u32) -> Result<Parameter> {
-    Ok(Parameter::InsuranceFundAccount { account_id: account_id.into() })
-}
+impl FFIParameter {
+    #[frb(sync)]
+    pub fn fee_account(account_id: u32) -> Result<Self> {
+        Ok(Self { inner: Parameter::FeeAccount { account_id: account_id.into() } })
+    }
 
-#[frb(sync)]
-pub fn parameter_margin_info(margin_id: u8, symbol: String, token_id: u32, ratio: u8) -> Result<Parameter> {
-    Ok(Parameter::MarginInfo {
-        margin_id: margin_id.into(),
-        symbol,
-        token_id: token_id.into(),
-        ratio,
-    })
-}
+    #[frb(sync)]
+    pub fn insurance_fund_account(account_id: u32) -> Result<Self> {
+        Ok(Self { inner: Parameter::InsuranceFundAccount { account_id: account_id.into() } })
+    }
 
-#[frb(sync)]
-pub fn parameter_funding_info(pair_id: u16, price: String, funding_rate: i16) -> Result<FundingInfo> {
-    Ok(FundingInfo {
-        pair_id: pair_id.into(),
-        price: BigUint::from_str(&price)?,
-        funding_rate,
-    })
-}
+    #[frb(sync)]
+    pub fn margin_info(margin_id: u8, symbol: String, token_id: u32, ratio: u8) -> Result<Self> {
+        Ok(Self { 
+            inner: Parameter::MarginInfo {
+                margin_id: margin_id.into(),
+                symbol,
+                token_id: token_id.into(),
+                ratio,
+            }
+        })
+    }
 
-#[frb(sync)]
-pub fn parameter_funding_infos(infos: Vec<FundingInfo>) -> Result<Parameter> {
-    Ok(Parameter::FundingInfos {infos})
-}
+    #[frb(sync)]
+    pub fn funding_infos(infos: Vec<FFIFundingInfo>) -> Result<Self> {
+        let infos = infos
+            .iter()
+            .map(|e| e.inner.clone())
+            .collect();
+        Ok(Self { inner: Parameter::FundingInfos { infos } })
+    }
 
-#[frb(sync)]
-pub fn parameter_contract_info(
-    pair_id: u16,
-    symbol: String,
-    initial_margin_rate: u16,
-    maintenance_margin_rate: u16,
-) -> Result<Parameter> {
-    Ok(Parameter::ContractInfo {
-        pair_id: pair_id.into(),
-        symbol,
-        initial_margin_rate,
-        maintenance_margin_rate,
-    })
+    #[frb(sync)]
+    pub fn contract_info(
+        pair_id: u16,
+        symbol: String,
+        initial_margin_rate: u16,
+        maintenance_margin_rate: u16,
+    ) -> Result<Self> {
+        Ok(Self { 
+            inner: Parameter::ContractInfo {
+                pair_id: pair_id.into(),
+                symbol,
+                initial_margin_rate,
+                maintenance_margin_rate,
+            }
+        })
+    }
 }
 
 #[frb(opaque)]
@@ -758,14 +848,14 @@ impl FFIUpdateGlobalVar {
     pub fn new(
         from_chain_id: u8,
         sub_account_id: u8,
-        parameter: Parameter,
+        parameter: FFIParameter,
         serial_id: f64,
     ) -> Result<Self> {
         Ok(Self { 
             inner: UpdateGlobalVarBuilder {
                 from_chain_id: from_chain_id.into(),
                 sub_account_id: sub_account_id.into(),
-                parameter: parameter.into(),
+                parameter: parameter.inner,
                 serial_id: serial_id as u64,
             }.build()
         })
