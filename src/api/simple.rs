@@ -1,41 +1,39 @@
-use std::str::FromStr;
-use std::time::Instant;
 use anyhow::Result;
-use serde_json::to_string;
 use flutter_rust_bridge::frb;
+use serde_json::to_string;
+use std::str::FromStr;
+use std::time::UNIX_EPOCH;
+use zklink_sdk_interface::signer::{L1SignerType, Signer as InnerSigner};
 use zklink_sdk_signers::eth_signer::H256;
 use zklink_sdk_signers::starknet_signer::StarkEcdsaSignature;
 use zklink_sdk_signers::zklink_signer::ZkLinkSigner as InnerZkLinkSigner;
 use zklink_sdk_signers::{eth_signer::PackedEthSignature, zklink_signer::PubKeyHash};
+use zklink_sdk_types::basic_types::BigUint;
 use zklink_sdk_types::basic_types::{GetBytes, ZkLinkAddress};
 use zklink_sdk_types::tx_builder::*;
+use zklink_sdk_types::tx_type::change_pubkey::ChangePubKey as InnerChangePubKey;
 use zklink_sdk_types::tx_type::change_pubkey::{ChangePubKeyAuthData, Create2Data};
 use zklink_sdk_types::tx_type::contract::{
-    AutoDeleveraging as InnerAutoDeleveraging,
-    Contract as InnerContract,
-    ContractMatching as InnerContractMatching,
-    ContractPrice as InnerContractPrice,
-    Funding as InnerFunding,
-    FundingInfo as InnerFundingInfo,
-    Liquidation as InnerLiquidation,
-    Parameter as InnerParameter,
-    SpotPriceInfo as InnerSpotPriceInfo,
+    AutoDeleveraging as InnerAutoDeleveraging, Contract as InnerContract,
+    ContractMatching as InnerContractMatching, ContractPrice as InnerContractPrice,
+    Funding as InnerFunding, FundingInfo as InnerFundingInfo, Liquidation as InnerLiquidation,
+    Parameter as InnerParameter, SpotPriceInfo as InnerSpotPriceInfo,
     UpdateGlobalVar as InnerUpdateGlobalVar,
 };
 use zklink_sdk_types::tx_type::forced_exit::ForcedExit as InnerForcedExit;
-use zklink_sdk_types::tx_type::order_matching::{Order as InnerOrder, OrderMatching as InnerOrderMatching};
+use zklink_sdk_types::tx_type::order_matching::{
+    Order as InnerOrder, OrderMatching as InnerOrderMatching,
+};
 use zklink_sdk_types::tx_type::transfer::Transfer as InnerTransfer;
 use zklink_sdk_types::tx_type::withdraw::Withdraw as InnerWithdraw;
-use zklink_sdk_types::{basic_types::BigUint, tx_type::change_pubkey::ChangePubKey as InnerChangePubKey};
-use zklink_sdk_interface::signer::{Signer as InnerSigner, L1SignerType};
 use zklink_sdk_wallet::eth::EthTxOption as InnerEthTxOption;
 use zklink_sdk_wallet::wallet::Wallet as InnerWallet;
 
 macro_rules! tx_default {
     () => {
         #[frb(sync)]
-        pub fn sign(&mut self, zklink_signer: ZkLinkSigner) -> Result<()> {
-            self.inner.signature = zklink_signer.inner.sign_musig(&self.inner.get_bytes())?;
+        pub fn sign(&mut self, zk_link_signer: ZkLinkSigner) -> Result<()> {
+            self.inner.signature = zk_link_signer.inner.sign_musig(&self.inner.get_bytes())?;
             Ok(())
         }
 
@@ -43,13 +41,12 @@ macro_rules! tx_default {
         pub fn to_json(&self) -> Result<String> {
             Ok(to_string(&self.inner)?)
         }
-    }
+    };
 }
-
 
 #[frb(opaque)]
 pub struct ZkLinkSigner {
-    pub inner: InnerZkLinkSigner
+    pub inner: InnerZkLinkSigner,
 }
 
 impl ZkLinkSigner {
@@ -58,7 +55,7 @@ impl ZkLinkSigner {
         let signature = PackedEthSignature::from_hex(&sig)?;
         let seed = signature.serialize_packed();
         Ok(Self {
-            inner: InnerZkLinkSigner::new_from_seed(&seed)?
+            inner: InnerZkLinkSigner::new_from_seed(&seed)?,
         })
     }
 
@@ -67,7 +64,7 @@ impl ZkLinkSigner {
         let signature = StarkEcdsaSignature::from_hex(&sig)?;
         let seed = signature.to_bytes_be();
         Ok(Self {
-            inner: InnerZkLinkSigner::new_from_seed(&seed)?
+            inner: InnerZkLinkSigner::new_from_seed(&seed)?,
         })
     }
 
@@ -84,50 +81,48 @@ impl ZkLinkSigner {
 
 #[frb(opaque)]
 pub struct Signer {
-    pub inner: InnerSigner
+    pub inner: InnerSigner,
 }
 
 impl Signer {
     #[frb(sync)]
     pub fn eth_signer(eth_private_key: String) -> Result<Self> {
         Ok(Self {
-            inner: InnerSigner::new(&eth_private_key, L1SignerType::Eth)?
+            inner: InnerSigner::new(&eth_private_key, L1SignerType::Eth)?,
         })
     }
-    
+
     #[frb(sync)]
     pub fn starknet_signer(
         eth_private_key: String,
         starknet_chain_id: String,
-        starknet_addr: String
+        starknet_addr: String,
     ) -> Result<Self> {
         let signer_type = L1SignerType::Starknet {
             chain_id: starknet_chain_id,
             address: starknet_addr,
         };
         Ok(Self {
-            inner: InnerSigner::new(&eth_private_key, signer_type)?
+            inner: InnerSigner::new(&eth_private_key, signer_type)?,
         })
     }
 
     #[frb(sync)]
-    pub fn sign_change_pubkey_with_onchain(
-        &self,
-        tx: ChangePubKey,
-    ) -> Result<String> {
-        let sig = self.inner.sign_change_pubkey_with_onchain_auth_data(tx.inner)?;
+    pub fn sign_change_pubkey_with_onchain(&self, tx: ChangePubKey) -> Result<String> {
+        let sig = self
+            .inner
+            .sign_change_pubkey_with_onchain_auth_data(tx.inner)?;
         Ok(to_string(&sig.tx)?)
     }
-    
+
     #[frb(sync)]
-    pub fn sign_change_pubkey_with_eth_ecdsa_auth(
-        &self,
-        tx: ChangePubKey,
-    ) -> Result<String> {
-        let sig = self.inner.sign_change_pubkey_with_eth_ecdsa_auth(tx.inner)?;
+    pub fn sign_change_pubkey_with_eth_ecdsa_auth(&self, tx: ChangePubKey) -> Result<String> {
+        let sig = self
+            .inner
+            .sign_change_pubkey_with_eth_ecdsa_auth(tx.inner)?;
         Ok(to_string(&sig.tx)?)
     }
-    
+
     #[frb(sync)]
     pub fn sign_change_pubkey_with_create2data_auth(
         &self,
@@ -141,7 +136,9 @@ impl Signer {
             code_hash: H256::from_str(&code_hash)?,
             salt_arg: H256::from_str(&salt_arg)?,
         };
-        let sig = self.inner.sign_change_pubkey_with_create2data_auth(tx.inner, create2_data)?;
+        let sig = self
+            .inner
+            .sign_change_pubkey_with_create2data_auth(tx.inner, create2_data)?;
         Ok(to_string(&sig.tx)?)
     }
 
@@ -153,7 +150,9 @@ impl Signer {
         chain_id: Option<String>,
         addr: Option<String>,
     ) -> Result<String> {
-        let sig = self.inner.sign_transfer(tx.inner, &token_symbol, chain_id, addr)?;
+        let sig = self
+            .inner
+            .sign_transfer(tx.inner, &token_symbol, chain_id, addr)?;
         Ok(to_string(&sig.tx)?)
     }
 
@@ -165,7 +164,9 @@ impl Signer {
         chain_id: Option<String>,
         addr: Option<String>,
     ) -> Result<String> {
-        let sig = self.inner.sign_withdraw(tx.inner, &token_symbol, chain_id, addr)?;
+        let sig = self
+            .inner
+            .sign_withdraw(tx.inner, &token_symbol, chain_id, addr)?;
         Ok(to_string(&sig.tx)?)
     }
 
@@ -177,7 +178,9 @@ impl Signer {
 
     #[frb(sync)]
     pub fn create_signed_order(&self, order: Order) -> Result<Order> {
-        Ok(Order {inner: self.inner.create_signed_order(&order.inner)?})
+        Ok(Order {
+            inner: self.inner.create_signed_order(&order.inner)?,
+        })
     }
 
     #[frb(sync)]
@@ -188,9 +191,11 @@ impl Signer {
 
     #[frb(sync)]
     pub fn create_signed_contract(&self, contract: Contract) -> Result<Contract> {
-        Ok(Contract {inner: self.inner.create_signed_contract(&contract.inner)?})
+        Ok(Contract {
+            inner: self.inner.create_signed_contract(&contract.inner)?,
+        })
     }
-    
+
     #[frb(sync)]
     pub fn sign_contract_matching(&self, tx: ContractMatching) -> Result<String> {
         let sig = self.inner.sign_contract_matching(tx.inner)?;
@@ -218,7 +223,7 @@ impl Signer {
 
 #[frb(opaque)]
 pub struct ChangePubKey {
-    pub inner: InnerChangePubKey
+    pub inner: InnerChangePubKey,
 }
 
 impl ChangePubKey {
@@ -237,14 +242,14 @@ impl ChangePubKey {
         let ts = if let Some(time_stamp) = ts {
             time_stamp
         } else {
-            Instant::now().elapsed().as_secs() as u32
+            UNIX_EPOCH.elapsed().unwrap().as_secs() as u32
         };
         let eth_signature = if let Some(s) = eth_signature {
             Some(PackedEthSignature::from_hex(&s)?)
         } else {
             None
         };
-        Ok(Self { 
+        Ok(Self {
             inner: ChangePubKeyBuilder {
                 chain_id: chain_id.into(),
                 account_id: account_id.into(),
@@ -255,29 +260,21 @@ impl ChangePubKey {
                 nonce: nonce.into(),
                 eth_signature,
                 timestamp: ts.into(),
-            }.build()
+            }
+            .build(),
         })
     }
 
     #[frb(sync)]
-    pub fn to_eip712_request_payload(
-        &self,
-        chain_id: u32,
-        address: String,
-    ) -> Result<String> {
-        let eth_data = self.inner.to_eip712_request_payload(
-            chain_id,
-            &ZkLinkAddress::from_hex(&address)?,
-        )?;
+    pub fn to_eip712_request_payload(&self, chain_id: u32, address: String) -> Result<String> {
+        let eth_data = self
+            .inner
+            .to_eip712_request_payload(chain_id, &ZkLinkAddress::from_hex(&address)?)?;
         Ok(to_string(&eth_data)?)
     }
 
     #[frb(sync)]
-    pub fn get_eth_sign_msg(
-        &self,
-        nonce: u32,
-        account_id: u32,
-    ) -> String {
+    pub fn get_eth_sign_msg(&self, nonce: u32, account_id: u32) -> String {
         format!(
             "ChangePubKey\nPubKeyHash: {}\nNonce: {}\nAccountId: {}",
             self.inner.new_pk_hash.as_hex(),
@@ -299,7 +296,7 @@ impl ChangePubKey {
 
 #[frb(opaque)]
 pub struct Transfer {
-    pub inner: InnerTransfer
+    pub inner: InnerTransfer,
 }
 
 impl Transfer {
@@ -318,9 +315,9 @@ impl Transfer {
         let ts = if let Some(time_stamp) = ts {
             time_stamp
         } else {
-            Instant::now().elapsed().as_secs() as u32
+            UNIX_EPOCH.elapsed().unwrap().as_secs() as u32
         };
-        Ok(Self { 
+        Ok(Self {
             inner: TransferBuilder {
                 account_id: account_id.into(),
                 to_address: ZkLinkAddress::from_hex(&to_address)?,
@@ -331,7 +328,8 @@ impl Transfer {
                 nonce: nonce.into(),
                 timestamp: ts.into(),
                 amount: BigUint::from_str(&amount)?,
-            }.build()
+            }
+            .build(),
         })
     }
 
@@ -345,7 +343,7 @@ impl Transfer {
 
 #[frb(opaque)]
 pub struct Withdraw {
-    pub inner: InnerWithdraw
+    pub inner: InnerWithdraw,
 }
 
 impl Withdraw {
@@ -368,14 +366,14 @@ impl Withdraw {
         let ts = if let Some(time_stamp) = ts {
             time_stamp
         } else {
-            Instant::now().elapsed().as_secs() as u32
+            UNIX_EPOCH.elapsed().unwrap().as_secs() as u32
         };
         let data_hash = if let Some(data_hash) = data_hash {
             Some(H256::from_str(&data_hash)?)
         } else {
             None
         };
-        Ok(Self { 
+        Ok(Self {
             inner: WithdrawBuilder {
                 account_id: account_id.into(),
                 sub_account_id: sub_account_id.into(),
@@ -390,7 +388,8 @@ impl Withdraw {
                 withdraw_to_l1,
                 withdraw_fee_ratio,
                 timestamp: ts.into(),
-            }.build()
+            }
+            .build(),
         })
     }
 
@@ -404,7 +403,7 @@ impl Withdraw {
 
 #[frb(opaque)]
 pub struct ForcedExit {
-    pub inner: InnerForcedExit
+    pub inner: InnerForcedExit,
 }
 
 impl ForcedExit {
@@ -425,9 +424,9 @@ impl ForcedExit {
         let ts = if let Some(time_stamp) = ts {
             time_stamp
         } else {
-            Instant::now().elapsed().as_secs() as u32
+            UNIX_EPOCH.elapsed().unwrap().as_secs() as u32
         };
-        Ok(Self { 
+        Ok(Self {
             inner: ForcedExitBuilder {
                 to_chain_id: to_chain_id.into(),
                 initiator_account_id: initiator_account_id.into(),
@@ -440,7 +439,8 @@ impl ForcedExit {
                 target_sub_account_id: target_sub_account_id.into(),
                 withdraw_to_l1,
                 exit_amount: BigUint::from_str(&exit_amount)?,
-            }.build()
+            }
+            .build(),
         })
     }
 
@@ -449,7 +449,7 @@ impl ForcedExit {
 
 #[frb(opaque)]
 pub struct ContractPrice {
-    pub inner: InnerContractPrice
+    pub inner: InnerContractPrice,
 }
 
 impl ContractPrice {
@@ -459,14 +459,14 @@ impl ContractPrice {
             inner: InnerContractPrice {
                 pair_id: pair_id.into(),
                 market_price: BigUint::from_str(&market_price)?,
-            }
+            },
         })
     }
 }
 
 #[frb(opaque)]
 pub struct SpotPriceInfo {
-    pub inner: InnerSpotPriceInfo
+    pub inner: InnerSpotPriceInfo,
 }
 
 impl SpotPriceInfo {
@@ -476,19 +476,19 @@ impl SpotPriceInfo {
             inner: InnerSpotPriceInfo {
                 token_id: token_id.into(),
                 price: BigUint::from_str(&price)?,
-            }
+            },
         })
     }
 }
 
 #[frb(opaque)]
 pub struct Order {
-    pub inner: InnerOrder
+    pub inner: InnerOrder,
 }
 
 impl Order {
     #[frb(sync)]
-    pub fn order(
+    pub fn new(
         account_id: u32,
         sub_account_id: u8,
         slot_id: u32,
@@ -516,14 +516,14 @@ impl Order {
                 fee_rates: [maker_fee_rate, taker_fee_rate],
                 has_subsidy: has_subsidy as u8,
                 signature: Default::default(),
-            }
+            },
         })
     }
 }
 
 #[frb(opaque)]
 pub struct OrderMatching {
-    pub inner: InnerOrderMatching
+    pub inner: InnerOrderMatching,
 }
 
 impl OrderMatching {
@@ -540,15 +540,9 @@ impl OrderMatching {
         expect_base_amount: String,
         expect_quote_amount: String,
     ) -> Result<Self> {
-        let contract_prices = contract_prices
-            .iter()
-            .map(|e| e.inner.clone())
-            .collect();
-        let margin_prices = margin_prices
-            .iter()
-            .map(|e| e.inner.clone())
-            .collect();
-        Ok(Self { 
+        let contract_prices = contract_prices.iter().map(|e| e.inner.clone()).collect();
+        let margin_prices = margin_prices.iter().map(|e| e.inner.clone()).collect();
+        Ok(Self {
             inner: OrderMatchingBuilder {
                 account_id: account_id.into(),
                 sub_account_id: sub_account_id.into(),
@@ -560,7 +554,8 @@ impl OrderMatching {
                 expect_quote_amount: BigUint::from_str(&expect_quote_amount)?,
                 contract_prices,
                 margin_prices,
-            }.build()
+            }
+            .build(),
         })
     }
 
@@ -569,7 +564,7 @@ impl OrderMatching {
 
 #[frb(opaque)]
 pub struct Contract {
-    pub inner: InnerContract
+    pub inner: InnerContract,
 }
 
 impl Contract {
@@ -600,14 +595,15 @@ impl Contract {
                 maker_fee_rate,
                 taker_fee_rate,
                 has_subsidy,
-            }.build()
+            }
+            .build(),
         })
     }
 }
 
 #[frb(opaque)]
 pub struct ContractMatching {
-    pub inner: InnerContractMatching
+    pub inner: InnerContractMatching,
 }
 
 impl ContractMatching {
@@ -622,19 +618,10 @@ impl ContractMatching {
         contract_prices: Vec<ContractPrice>,
         margin_prices: Vec<SpotPriceInfo>,
     ) -> Result<Self> {
-        let maker = maker
-            .iter()
-            .map(|e| e.inner.clone())
-            .collect();
-        let contract_prices = contract_prices
-            .iter()
-            .map(|e| e.inner.clone())
-            .collect();
-        let margin_prices = margin_prices
-            .iter()
-            .map(|e| e.inner.clone())
-            .collect();
-        Ok(Self { 
+        let maker = maker.iter().map(|e| e.inner.clone()).collect();
+        let contract_prices = contract_prices.iter().map(|e| e.inner.clone()).collect();
+        let margin_prices = margin_prices.iter().map(|e| e.inner.clone()).collect();
+        Ok(Self {
             inner: ContractMatchingBuilder {
                 account_id: account_id.into(),
                 sub_account_id: sub_account_id.into(),
@@ -644,7 +631,8 @@ impl ContractMatching {
                 fee_token: fee_token.into(),
                 contract_prices,
                 margin_prices,
-            }.build()
+            }
+            .build(),
         })
     }
 
@@ -653,7 +641,7 @@ impl ContractMatching {
 
 #[frb(opaque)]
 pub struct AutoDeleveraging {
-    pub inner: InnerAutoDeleveraging
+    pub inner: InnerAutoDeleveraging,
 }
 
 impl AutoDeleveraging {
@@ -671,15 +659,9 @@ impl AutoDeleveraging {
         fee: String,
         fee_token: u16,
     ) -> Result<Self> {
-        let contract_prices = contract_prices
-            .iter()
-            .map(|e| e.inner.clone())
-            .collect();
-        let margin_prices = margin_prices
-            .iter()
-            .map(|e| e.inner.clone())
-            .collect();
-        Ok(Self { 
+        let contract_prices = contract_prices.iter().map(|e| e.inner.clone()).collect();
+        let margin_prices = margin_prices.iter().map(|e| e.inner.clone()).collect();
+        Ok(Self {
             inner: AutoDeleveragingBuilder {
                 account_id: account_id.into(),
                 sub_account_id: sub_account_id.into(),
@@ -692,7 +674,8 @@ impl AutoDeleveraging {
                 adl_price: BigUint::from_str(&adl_price)?,
                 fee: BigUint::from_str(&fee)?,
                 fee_token: fee_token.into(),
-            }.build()
+            }
+            .build(),
         })
     }
 
@@ -701,7 +684,7 @@ impl AutoDeleveraging {
 
 #[frb(opaque)]
 pub struct Funding {
-    pub inner: InnerFunding
+    pub inner: InnerFunding,
 }
 
 impl Funding {
@@ -718,7 +701,7 @@ impl Funding {
             .iter()
             .map(|id| (*id).into())
             .collect::<Vec<_>>();
-        Ok(Self { 
+        Ok(Self {
             inner: FundingBuilder {
                 account_id: account_id.into(),
                 sub_account_id: sub_account_id.into(),
@@ -726,7 +709,8 @@ impl Funding {
                 fee: BigUint::from_str(&fee)?,
                 fee_token: fee_token.into(),
                 funding_account_ids,
-            }.build()
+            }
+            .build(),
         })
     }
 
@@ -735,7 +719,7 @@ impl Funding {
 
 #[frb(opaque)]
 pub struct Liquidation {
-    pub inner: InnerLiquidation
+    pub inner: InnerLiquidation,
 }
 
 impl Liquidation {
@@ -750,15 +734,9 @@ impl Liquidation {
         fee: String,
         fee_token: u16,
     ) -> Result<Self> {
-        let contract_prices = contract_prices
-            .iter()
-            .map(|e| e.inner.clone())
-            .collect();
-        let margin_prices = margin_prices
-            .iter()
-            .map(|e| e.inner.clone())
-            .collect();
-        Ok(Self { 
+        let contract_prices = contract_prices.iter().map(|e| e.inner.clone()).collect();
+        let margin_prices = margin_prices.iter().map(|e| e.inner.clone()).collect();
+        Ok(Self {
             inner: LiquidationBuilder {
                 account_id: account_id.into(),
                 sub_account_id: sub_account_id.into(),
@@ -768,7 +746,8 @@ impl Liquidation {
                 liquidation_account_id: liquidation_account_id.into(),
                 fee: BigUint::from_str(&fee)?,
                 fee_token: fee_token.into(),
-            }.build()
+            }
+            .build(),
         })
     }
 
@@ -777,57 +756,64 @@ impl Liquidation {
 
 #[frb(opaque)]
 pub struct FundingInfo {
-    pub inner: InnerFundingInfo
+    pub inner: InnerFundingInfo,
 }
 
 impl FundingInfo {
     #[frb(sync)]
     pub fn new(pair_id: u16, price: String, funding_rate: i16) -> Result<Self> {
-        Ok(Self { 
+        Ok(Self {
             inner: InnerFundingInfo {
                 pair_id: pair_id.into(),
                 price: BigUint::from_str(&price)?,
                 funding_rate,
-            }
+            },
         })
     }
 }
 
 #[frb(opaque)]
 pub struct Parameter {
-    pub inner: InnerParameter
+    pub inner: InnerParameter,
 }
 
 impl Parameter {
     #[frb(sync)]
     pub fn fee_account(account_id: u32) -> Result<Self> {
-        Ok(Self { inner: InnerParameter::FeeAccount { account_id: account_id.into() } })
+        Ok(Self {
+            inner: InnerParameter::FeeAccount {
+                account_id: account_id.into(),
+            },
+        })
     }
 
     #[frb(sync)]
     pub fn insurance_fund_account(account_id: u32) -> Result<Self> {
-        Ok(Self { inner: InnerParameter::InsuranceFundAccount { account_id: account_id.into() } })
+        Ok(Self {
+            inner: InnerParameter::InsuranceFundAccount {
+                account_id: account_id.into(),
+            },
+        })
     }
 
     #[frb(sync)]
     pub fn margin_info(margin_id: u8, symbol: String, token_id: u32, ratio: u8) -> Result<Self> {
-        Ok(Self { 
+        Ok(Self {
             inner: InnerParameter::MarginInfo {
                 margin_id: margin_id.into(),
                 symbol,
                 token_id: token_id.into(),
                 ratio,
-            }
+            },
         })
     }
 
     #[frb(sync)]
     pub fn funding_infos(infos: Vec<FundingInfo>) -> Result<Self> {
-        let infos = infos
-            .iter()
-            .map(|e| e.inner.clone())
-            .collect();
-        Ok(Self { inner: InnerParameter::FundingInfos { infos } })
+        let infos = infos.iter().map(|e| e.inner.clone()).collect();
+        Ok(Self {
+            inner: InnerParameter::FundingInfos { infos },
+        })
     }
 
     #[frb(sync)]
@@ -837,20 +823,20 @@ impl Parameter {
         initial_margin_rate: u16,
         maintenance_margin_rate: u16,
     ) -> Result<Self> {
-        Ok(Self { 
+        Ok(Self {
             inner: InnerParameter::ContractInfo {
                 pair_id: pair_id.into(),
                 symbol,
                 initial_margin_rate,
                 maintenance_margin_rate,
-            }
+            },
         })
     }
 }
 
 #[frb(opaque)]
 pub struct UpdateGlobalVar {
-    pub inner: InnerUpdateGlobalVar
+    pub inner: InnerUpdateGlobalVar,
 }
 
 impl UpdateGlobalVar {
@@ -861,13 +847,14 @@ impl UpdateGlobalVar {
         parameter: Parameter,
         serial_id: f64,
     ) -> Result<Self> {
-        Ok(Self { 
+        Ok(Self {
             inner: UpdateGlobalVarBuilder {
                 from_chain_id: from_chain_id.into(),
                 sub_account_id: sub_account_id.into(),
                 parameter: parameter.inner,
                 serial_id: serial_id as u64,
-            }.build()
+            }
+            .build(),
         })
     }
 
@@ -879,7 +866,7 @@ impl UpdateGlobalVar {
 
 #[frb(opaque)]
 pub struct EthTxOption {
-    pub inner: InnerEthTxOption
+    pub inner: InnerEthTxOption,
 }
 
 impl EthTxOption {
@@ -902,7 +889,7 @@ impl EthTxOption {
         } else {
             None
         };
-        Ok(Self { 
+        Ok(Self {
             inner: InnerEthTxOption {
                 is_support_eip1559,
                 to: ZkLinkAddress::from_hex(&to)?,
@@ -910,21 +897,21 @@ impl EthTxOption {
                 value,
                 gas: gas.map(|g| g as u64),
                 gas_price,
-            }
+            },
         })
     }
 }
 
 #[frb(opaque)]
 pub struct Wallet {
-    pub inner: InnerWallet
+    pub inner: InnerWallet,
 }
 
 impl Wallet {
     #[frb(sync)]
     pub fn new(url: String, private_key: String) -> Result<Self> {
         Ok(Self {
-            inner: InnerWallet::new(&url, &private_key)
+            inner: InnerWallet::new(&url, &private_key),
         })
     }
 
@@ -943,11 +930,7 @@ impl Wallet {
         Ok(fee.to_string())
     }
 
-    pub async fn wait_for_transaction(
-        &self,
-        tx_hash: String,
-        timeout: Option<u32>,
-    ) -> Result<u8> {
+    pub async fn wait_for_transaction(&self, tx_hash: String, timeout: Option<u32>) -> Result<u8> {
         let tx_hash = H256::from_str(&tx_hash)?;
         let status = self.inner.wait_for_transaction(tx_hash, timeout).await?;
         Ok(status as u8)
@@ -961,7 +944,10 @@ impl Wallet {
     ) -> Result<String> {
         let contract = ZkLinkAddress::from_hex(&contract)?;
         let amount = BigUint::from_str(&amount)?;
-        let tx_hash = self.inner.approve_erc20(contract, amount, eth_params.inner).await?;
+        let tx_hash = self
+            .inner
+            .approve_erc20(contract, amount, eth_params.inner)
+            .await?;
         Ok(hex::encode(tx_hash.as_bytes()))
     }
 
@@ -979,25 +965,27 @@ impl Wallet {
         let token_addr = ZkLinkAddress::from_hex(&token_addr)?;
         let amount = BigUint::from_str(&amount)?;
         let tx_hash = if !is_gateway {
-            self.inner.deposit_erc20_to_layer1(
-                sub_account_id,
-                deposit_to,
-                token_addr,
-                amount,
-                mapping,
-                eth_params.inner,
-            )
-            .await?
+            self.inner
+                .deposit_erc20_to_layer1(
+                    sub_account_id,
+                    deposit_to,
+                    token_addr,
+                    amount,
+                    mapping,
+                    eth_params.inner,
+                )
+                .await?
         } else {
-            self.inner.deposit_erc20_to_gateway(
-                sub_account_id,
-                deposit_to,
-                token_addr,
-                amount,
-                mapping,
-                eth_params.inner,
-            )
-            .await?
+            self.inner
+                .deposit_erc20_to_gateway(
+                    sub_account_id,
+                    deposit_to,
+                    token_addr,
+                    amount,
+                    mapping,
+                    eth_params.inner,
+                )
+                .await?
         };
         Ok(hex::encode(tx_hash.as_bytes()))
     }
@@ -1011,9 +999,13 @@ impl Wallet {
     ) -> Result<String> {
         let deposit_to = ZkLinkAddress::from_hex(&deposit_to)?;
         let tx_hash = if !is_gateway {
-            self.inner.deposit_eth_to_layer1(sub_account_id, deposit_to, eth_params.inner).await?
+            self.inner
+                .deposit_eth_to_layer1(sub_account_id, deposit_to, eth_params.inner)
+                .await?
         } else {
-            self.inner.deposit_eth_to_gateway(sub_account_id, deposit_to, eth_params.inner).await?
+            self.inner
+                .deposit_eth_to_gateway(sub_account_id, deposit_to, eth_params.inner)
+                .await?
         };
         Ok(hex::encode(tx_hash.as_bytes()))
     }
@@ -1025,7 +1017,10 @@ impl Wallet {
         eth_params: EthTxOption,
     ) -> Result<String> {
         let new_pubkey_hash = PubKeyHash::from_hex(&new_pubkey_hash)?;
-        let tx_hash = self.inner.set_auth_pubkey_hash(nonce as u64, new_pubkey_hash, eth_params.inner).await?;
+        let tx_hash = self
+            .inner
+            .set_auth_pubkey_hash(nonce as u64, new_pubkey_hash, eth_params.inner)
+            .await?;
         Ok(hex::encode(tx_hash.as_bytes()))
     }
 
@@ -1037,7 +1032,16 @@ impl Wallet {
         mapping: bool,
         eth_params: EthTxOption,
     ) -> Result<String> {
-        let tx_hash = self.inner.full_exit(account_id, sub_account_id, token_id, mapping, eth_params.inner).await?;
+        let tx_hash = self
+            .inner
+            .full_exit(
+                account_id,
+                sub_account_id,
+                token_id,
+                mapping,
+                eth_params.inner,
+            )
+            .await?;
         Ok(hex::encode(tx_hash.as_bytes()))
     }
 }

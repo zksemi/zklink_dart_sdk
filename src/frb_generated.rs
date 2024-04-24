@@ -32,7 +32,7 @@ flutter_rust_bridge::frb_generated_boilerplate!(
     default_rust_auto_opaque = RustAutoOpaqueMoi,
 );
 pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_VERSION: &str = "2.0.0-dev.32";
-pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_CONTENT_HASH: i32 = -1603693778;
+pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_CONTENT_HASH: i32 = -657269074;
 
 // Section: executor
 
@@ -115,11 +115,11 @@ fn wire_AutoDeleveraging_sign_impl(
             let api_that = <RustOpaqueMoi<
                 flutter_rust_bridge::for_generated::rust_async::RwLock<AutoDeleveraging>,
             >>::sse_decode(&mut deserializer);
-            let api_zklink_signer = <ZkLinkSigner>::sse_decode(&mut deserializer);
+            let api_zk_link_signer = <ZkLinkSigner>::sse_decode(&mut deserializer);
             deserializer.end();
             transform_result_sse((move || {
                 let mut api_that = api_that.rust_auto_opaque_decode_ref_mut();
-                crate::api::simple::AutoDeleveraging::sign(&mut api_that, api_zklink_signer)
+                crate::api::simple::AutoDeleveraging::sign(&mut api_that, api_zk_link_signer)
             })())
         },
     )
@@ -298,11 +298,11 @@ fn wire_ChangePubKey_sign_impl(
             let api_that = <RustOpaqueMoi<
                 flutter_rust_bridge::for_generated::rust_async::RwLock<ChangePubKey>,
             >>::sse_decode(&mut deserializer);
-            let api_zklink_signer = <ZkLinkSigner>::sse_decode(&mut deserializer);
+            let api_zk_link_signer = <ZkLinkSigner>::sse_decode(&mut deserializer);
             deserializer.end();
             transform_result_sse((move || {
                 let mut api_that = api_that.rust_auto_opaque_decode_ref_mut();
-                crate::api::simple::ChangePubKey::sign(&mut api_that, api_zklink_signer)
+                crate::api::simple::ChangePubKey::sign(&mut api_that, api_zk_link_signer)
             })())
         },
     )
@@ -446,11 +446,11 @@ fn wire_ContractMatching_sign_impl(
             let api_that = <RustOpaqueMoi<
                 flutter_rust_bridge::for_generated::rust_async::RwLock<ContractMatching>,
             >>::sse_decode(&mut deserializer);
-            let api_zklink_signer = <ZkLinkSigner>::sse_decode(&mut deserializer);
+            let api_zk_link_signer = <ZkLinkSigner>::sse_decode(&mut deserializer);
             deserializer.end();
             transform_result_sse((move || {
                 let mut api_that = api_that.rust_auto_opaque_decode_ref_mut();
-                crate::api::simple::ContractMatching::sign(&mut api_that, api_zklink_signer)
+                crate::api::simple::ContractMatching::sign(&mut api_that, api_zk_link_signer)
             })())
         },
     )
@@ -684,11 +684,11 @@ fn wire_ForcedExit_sign_impl(
             let api_that = <RustOpaqueMoi<
                 flutter_rust_bridge::for_generated::rust_async::RwLock<ForcedExit>,
             >>::sse_decode(&mut deserializer);
-            let api_zklink_signer = <ZkLinkSigner>::sse_decode(&mut deserializer);
+            let api_zk_link_signer = <ZkLinkSigner>::sse_decode(&mut deserializer);
             deserializer.end();
             transform_result_sse((move || {
                 let mut api_that = api_that.rust_auto_opaque_decode_ref_mut();
-                crate::api::simple::ForcedExit::sign(&mut api_that, api_zklink_signer)
+                crate::api::simple::ForcedExit::sign(&mut api_that, api_zk_link_signer)
             })())
         },
     )
@@ -821,11 +821,11 @@ fn wire_Funding_sign_impl(
             let api_that = <RustOpaqueMoi<
                 flutter_rust_bridge::for_generated::rust_async::RwLock<Funding>,
             >>::sse_decode(&mut deserializer);
-            let api_zklink_signer = <ZkLinkSigner>::sse_decode(&mut deserializer);
+            let api_zk_link_signer = <ZkLinkSigner>::sse_decode(&mut deserializer);
             deserializer.end();
             transform_result_sse((move || {
                 let mut api_that = api_that.rust_auto_opaque_decode_ref_mut();
-                crate::api::simple::Funding::sign(&mut api_that, api_zklink_signer)
+                crate::api::simple::Funding::sign(&mut api_that, api_zk_link_signer)
             })())
         },
     )
@@ -931,11 +931,11 @@ fn wire_Liquidation_sign_impl(
             let api_that = <RustOpaqueMoi<
                 flutter_rust_bridge::for_generated::rust_async::RwLock<Liquidation>,
             >>::sse_decode(&mut deserializer);
-            let api_zklink_signer = <ZkLinkSigner>::sse_decode(&mut deserializer);
+            let api_zk_link_signer = <ZkLinkSigner>::sse_decode(&mut deserializer);
             deserializer.end();
             transform_result_sse((move || {
                 let mut api_that = api_that.rust_auto_opaque_decode_ref_mut();
-                crate::api::simple::Liquidation::sign(&mut api_that, api_zklink_signer)
+                crate::api::simple::Liquidation::sign(&mut api_that, api_zk_link_signer)
             })())
         },
     )
@@ -1045,11 +1045,11 @@ fn wire_OrderMatching_sign_impl(
             let api_that = <RustOpaqueMoi<
                 flutter_rust_bridge::for_generated::rust_async::RwLock<OrderMatching>,
             >>::sse_decode(&mut deserializer);
-            let api_zklink_signer = <ZkLinkSigner>::sse_decode(&mut deserializer);
+            let api_zk_link_signer = <ZkLinkSigner>::sse_decode(&mut deserializer);
             deserializer.end();
             transform_result_sse((move || {
                 let mut api_that = api_that.rust_auto_opaque_decode_ref_mut();
-                crate::api::simple::OrderMatching::sign(&mut api_that, api_zklink_signer)
+                crate::api::simple::OrderMatching::sign(&mut api_that, api_zk_link_signer)
             })())
         },
     )
@@ -1086,14 +1086,14 @@ fn wire_OrderMatching_to_json_impl(
         },
     )
 }
-fn wire_Order_order_impl(
+fn wire_Order_new_impl(
     ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
     rust_vec_len_: i32,
     data_len_: i32,
 ) -> flutter_rust_bridge::for_generated::WireSyncRust2DartSse {
     FLUTTER_RUST_BRIDGE_HANDLER.wrap_sync::<flutter_rust_bridge::for_generated::SseCodec, _>(
         flutter_rust_bridge::for_generated::TaskInfo {
-            debug_name: "Order_order",
+            debug_name: "Order_new",
             port: None,
             mode: flutter_rust_bridge::for_generated::FfiCallMode::Sync,
         },
@@ -1121,7 +1121,7 @@ fn wire_Order_order_impl(
             let api_has_subsidy = <bool>::sse_decode(&mut deserializer);
             deserializer.end();
             transform_result_sse((move || {
-                crate::api::simple::Order::order(
+                crate::api::simple::Order::new(
                     api_account_id,
                     api_sub_account_id,
                     api_slot_id,
@@ -1959,11 +1959,11 @@ fn wire_Transfer_sign_impl(
             let api_that = <RustOpaqueMoi<
                 flutter_rust_bridge::for_generated::rust_async::RwLock<Transfer>,
             >>::sse_decode(&mut deserializer);
-            let api_zklink_signer = <ZkLinkSigner>::sse_decode(&mut deserializer);
+            let api_zk_link_signer = <ZkLinkSigner>::sse_decode(&mut deserializer);
             deserializer.end();
             transform_result_sse((move || {
                 let mut api_that = api_that.rust_auto_opaque_decode_ref_mut();
-                crate::api::simple::Transfer::sign(&mut api_that, api_zklink_signer)
+                crate::api::simple::Transfer::sign(&mut api_that, api_zk_link_signer)
             })())
         },
     )
@@ -2624,11 +2624,11 @@ fn wire_Withdraw_sign_impl(
             let api_that = <RustOpaqueMoi<
                 flutter_rust_bridge::for_generated::rust_async::RwLock<Withdraw>,
             >>::sse_decode(&mut deserializer);
-            let api_zklink_signer = <ZkLinkSigner>::sse_decode(&mut deserializer);
+            let api_zk_link_signer = <ZkLinkSigner>::sse_decode(&mut deserializer);
             deserializer.end();
             transform_result_sse((move || {
                 let mut api_that = api_that.rust_auto_opaque_decode_ref_mut();
-                crate::api::simple::Withdraw::sign(&mut api_that, api_zklink_signer)
+                crate::api::simple::Withdraw::sign(&mut api_that, api_zk_link_signer)
             })())
         },
     )
@@ -3508,7 +3508,7 @@ fn pde_ffi_dispatcher_sync_impl(
         41 => wire_OrderMatching_new_impl(ptr, rust_vec_len, data_len),
         42 => wire_OrderMatching_sign_impl(ptr, rust_vec_len, data_len),
         43 => wire_OrderMatching_to_json_impl(ptr, rust_vec_len, data_len),
-        40 => wire_Order_order_impl(ptr, rust_vec_len, data_len),
+        40 => wire_Order_new_impl(ptr, rust_vec_len, data_len),
         62 => wire_Parameter_contract_info_impl(ptr, rust_vec_len, data_len),
         58 => wire_Parameter_fee_account_impl(ptr, rust_vec_len, data_len),
         61 => wire_Parameter_funding_infos_impl(ptr, rust_vec_len, data_len),
