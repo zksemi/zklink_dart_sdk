@@ -394,8 +394,8 @@ impl Withdraw {
         } else {
             UNIX_EPOCH.elapsed().unwrap().as_secs() as u32
         };
-        let data_hash = if let Some(data_hash) = call_data {
-            Some(H256::from_str(&data_hash)?)
+        let call_data = if let Some(call_data) = call_data {
+            Some(hex::decode(call_data.trim_start_matches("0x"))?)
         } else {
             None
         };
@@ -408,7 +408,7 @@ impl Withdraw {
                 l2_source_token: l2_source_token.into(),
                 l1_target_token: l1_target_token.into(),
                 amount: BigUint::from_str(&amount)?,
-                data_hash,
+                call_data,
                 fee: BigUint::from_str(&fee)?,
                 nonce: nonce.into(),
                 withdraw_to_l1,
@@ -822,6 +822,7 @@ impl Parameter {
         })
     }
 
+    #[allow(unused_variables)]
     #[frb(sync)]
     pub fn margin_info(
         margin_id: u8,
@@ -829,15 +830,9 @@ impl Parameter {
         token_id: u32,
         ratio: u8,
     ) -> Result<Self> {
-        let symbol = if let Some(symbol) = symbol {
-            symbol
-        } else {
-            String::new()
-        };
         Ok(Self {
             inner: InnerParameter::MarginInfo {
                 margin_id: margin_id.into(),
-                symbol,
                 token_id: token_id.into(),
                 ratio,
             },
