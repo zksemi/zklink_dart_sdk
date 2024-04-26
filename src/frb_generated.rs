@@ -1285,7 +1285,7 @@ fn wire_Parameter_margin_info_impl(
             let mut deserializer =
                 flutter_rust_bridge::for_generated::SseDeserializer::new(message);
             let api_margin_id = <u8>::sse_decode(&mut deserializer);
-            let api_symbol = <String>::sse_decode(&mut deserializer);
+            let api_symbol = <Option<String>>::sse_decode(&mut deserializer);
             let api_token_id = <u32>::sse_decode(&mut deserializer);
             let api_ratio = <u8>::sse_decode(&mut deserializer);
             deserializer.end();
@@ -2573,7 +2573,7 @@ fn wire_Withdraw_new_impl(
             let api_l2_source_token = <u32>::sse_decode(&mut deserializer);
             let api_l1_target_token = <u32>::sse_decode(&mut deserializer);
             let api_amount = <String>::sse_decode(&mut deserializer);
-            let api_data_hash = <Option<String>>::sse_decode(&mut deserializer);
+            let api_call_data = <Option<String>>::sse_decode(&mut deserializer);
             let api_fee = <String>::sse_decode(&mut deserializer);
             let api_nonce = <u32>::sse_decode(&mut deserializer);
             let api_withdraw_to_l1 = <bool>::sse_decode(&mut deserializer);
@@ -2589,7 +2589,7 @@ fn wire_Withdraw_new_impl(
                     api_l2_source_token,
                     api_l1_target_token,
                     api_amount,
-                    api_data_hash,
+                    api_call_data,
                     api_fee,
                     api_nonce,
                     api_withdraw_to_l1,
