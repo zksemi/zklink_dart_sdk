@@ -1,1 +1,17 @@
-/target
+# Flutter/Dart/Pub related
+pubspec.lock
+.dart_tool/
+.packages
+build/
+.pub-cache/
+.pub/
+.flutter-plugins
+.flutter-plugins-dependencies
+test/
+
+# Rust related
+rust/target/
+rust/Cargo.lock
+*.so
+*.dll
+*.dylib

@@ -19,4 +19,3 @@ zklink_sdk_wallet = { git = "https://github.com/zkLinkProtocol/zklink_sdk.git", 
 [profile.release]
 strip = "symbols"
 lto = "fat"
-opt-level = 3
