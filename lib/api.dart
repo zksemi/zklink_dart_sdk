@@ -998,6 +998,31 @@ class Withdraw extends RustOpaque {
       RustLib.instance.api.withdrawToJson(that: this, hint: hint);
 }
 
+// Rust type: RustOpaqueNom<flutter_rust_bridge::for_generated::rust_async::RwLock<ZkLinkSignature>>
+@sealed
+class ZkLinkSignature extends RustOpaque {
+  ZkLinkSignature.dcoDecode(List<dynamic> wire)
+      : super.dcoDecode(wire, _kStaticData);
+
+  ZkLinkSignature.sseDecode(int ptr, int externalSizeOnNative)
+      : super.sseDecode(ptr, externalSizeOnNative, _kStaticData);
+
+  static final _kStaticData = RustArcStaticData(
+    rustArcIncrementStrongCount:
+        RustLib.instance.api.rust_arc_increment_strong_count_ZkLinkSignature,
+    rustArcDecrementStrongCount:
+        RustLib.instance.api.rust_arc_decrement_strong_count_ZkLinkSignature,
+    rustArcDecrementStrongCountPtr:
+        RustLib.instance.api.rust_arc_decrement_strong_count_ZkLinkSignaturePtr,
+  );
+
+  String getPubkey({dynamic hint}) =>
+      RustLib.instance.api.zkLinkSignatureGetPubkey(that: this, hint: hint);
+
+  String getSignature({dynamic hint}) =>
+      RustLib.instance.api.zkLinkSignatureGetSignature(that: this, hint: hint);
+}
+
 // Rust type: RustOpaqueNom<flutter_rust_bridge::for_generated::rust_async::RwLock<ZkLinkSigner>>
 @sealed
 class ZkLinkSigner extends RustOpaque {
@@ -1024,6 +1049,10 @@ class ZkLinkSigner extends RustOpaque {
 
   String getPubkeyHash({dynamic hint}) =>
       RustLib.instance.api.zkLinkSignerGetPubkeyHash(that: this, hint: hint);
+
+  ZkLinkSignature signMusig({required List<int> msg, dynamic hint}) =>
+      RustLib.instance.api
+          .zkLinkSignerSignMusig(that: this, msg: msg, hint: hint);
 
   static ZkLinkSigner starknetSig({required String sig, dynamic hint}) =>
       RustLib.instance.api.zkLinkSignerStarknetSig(sig: sig, hint: hint);

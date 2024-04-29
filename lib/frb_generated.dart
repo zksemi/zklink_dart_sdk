@@ -56,7 +56,7 @@ class RustLib extends BaseEntrypoint<RustLibApi, RustLibApiImpl, RustLibWire> {
   String get codegenVersion => '2.0.0-dev.32';
 
   @override
-  int get rustContentHash => 1470082237;
+  int get rustContentHash => 1188958908;
 
   static const kDefaultExternalLibraryLoaderConfig =
       ExternalLibraryLoaderConfig(
@@ -465,11 +465,20 @@ abstract class RustLibApi extends BaseApi {
 
   String withdrawToJson({required Withdraw that, dynamic hint});
 
+  String zkLinkSignatureGetPubkey(
+      {required ZkLinkSignature that, dynamic hint});
+
+  String zkLinkSignatureGetSignature(
+      {required ZkLinkSignature that, dynamic hint});
+
   ZkLinkSigner zkLinkSignerEthSig({required String sig, dynamic hint});
 
   String zkLinkSignerGetPubkey({required ZkLinkSigner that, dynamic hint});
 
   String zkLinkSignerGetPubkeyHash({required ZkLinkSigner that, dynamic hint});
+
+  ZkLinkSignature zkLinkSignerSignMusig(
+      {required ZkLinkSigner that, required List<int> msg, dynamic hint});
 
   ZkLinkSigner zkLinkSignerStarknetSig({required String sig, dynamic hint});
 
@@ -624,6 +633,15 @@ abstract class RustLibApi extends BaseApi {
       get rust_arc_decrement_strong_count_Withdraw;
 
   CrossPlatformFinalizerArg get rust_arc_decrement_strong_count_WithdrawPtr;
+
+  RustArcIncrementStrongCountFnType
+      get rust_arc_increment_strong_count_ZkLinkSignature;
+
+  RustArcDecrementStrongCountFnType
+      get rust_arc_decrement_strong_count_ZkLinkSignature;
+
+  CrossPlatformFinalizerArg
+      get rust_arc_decrement_strong_count_ZkLinkSignaturePtr;
 
   RustArcIncrementStrongCountFnType
       get rust_arc_increment_strong_count_ZkLinkSigner;
@@ -3200,6 +3218,59 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       );
 
   @override
+  String zkLinkSignatureGetPubkey(
+      {required ZkLinkSignature that, dynamic hint}) {
+    return handler.executeSync(SyncTask(
+      callFfi: () {
+        var arg0 =
+            cst_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedrust_asyncRwLockZkLinkSignature(
+                that);
+        return wire.wire_ZkLinkSignature_get_pubkey(arg0);
+      },
+      codec: DcoCodec(
+        decodeSuccessData: dco_decode_String,
+        decodeErrorData: null,
+      ),
+      constMeta: kZkLinkSignatureGetPubkeyConstMeta,
+      argValues: [that],
+      apiImpl: this,
+      hint: hint,
+    ));
+  }
+
+  TaskConstMeta get kZkLinkSignatureGetPubkeyConstMeta => const TaskConstMeta(
+        debugName: "ZkLinkSignature_get_pubkey",
+        argNames: ["that"],
+      );
+
+  @override
+  String zkLinkSignatureGetSignature(
+      {required ZkLinkSignature that, dynamic hint}) {
+    return handler.executeSync(SyncTask(
+      callFfi: () {
+        var arg0 =
+            cst_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedrust_asyncRwLockZkLinkSignature(
+                that);
+        return wire.wire_ZkLinkSignature_get_signature(arg0);
+      },
+      codec: DcoCodec(
+        decodeSuccessData: dco_decode_String,
+        decodeErrorData: null,
+      ),
+      constMeta: kZkLinkSignatureGetSignatureConstMeta,
+      argValues: [that],
+      apiImpl: this,
+      hint: hint,
+    ));
+  }
+
+  TaskConstMeta get kZkLinkSignatureGetSignatureConstMeta =>
+      const TaskConstMeta(
+        debugName: "ZkLinkSignature_get_signature",
+        argNames: ["that"],
+      );
+
+  @override
   ZkLinkSigner zkLinkSignerEthSig({required String sig, dynamic hint}) {
     return handler.executeSync(SyncTask(
       callFfi: () {
@@ -3271,6 +3342,34 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   TaskConstMeta get kZkLinkSignerGetPubkeyHashConstMeta => const TaskConstMeta(
         debugName: "ZkLinkSigner_get_pubkey_hash",
         argNames: ["that"],
+      );
+
+  @override
+  ZkLinkSignature zkLinkSignerSignMusig(
+      {required ZkLinkSigner that, required List<int> msg, dynamic hint}) {
+    return handler.executeSync(SyncTask(
+      callFfi: () {
+        var arg0 =
+            cst_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedrust_asyncRwLockZkLinkSigner(
+                that);
+        var arg1 = cst_encode_list_prim_u_8_loose(msg);
+        return wire.wire_ZkLinkSigner_sign_musig(arg0, arg1);
+      },
+      codec: DcoCodec(
+        decodeSuccessData:
+            dco_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedrust_asyncRwLockZkLinkSignature,
+        decodeErrorData: dco_decode_AnyhowException,
+      ),
+      constMeta: kZkLinkSignerSignMusigConstMeta,
+      argValues: [that, msg],
+      apiImpl: this,
+      hint: hint,
+    ));
+  }
+
+  TaskConstMeta get kZkLinkSignerSignMusigConstMeta => const TaskConstMeta(
+        debugName: "ZkLinkSigner_sign_musig",
+        argNames: ["that", "msg"],
       );
 
   @override
@@ -3470,6 +3569,14 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           .rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedrust_asyncRwLockWithdraw;
 
   RustArcIncrementStrongCountFnType
+      get rust_arc_increment_strong_count_ZkLinkSignature => wire
+          .rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedrust_asyncRwLockZkLinkSignature;
+
+  RustArcDecrementStrongCountFnType
+      get rust_arc_decrement_strong_count_ZkLinkSignature => wire
+          .rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedrust_asyncRwLockZkLinkSignature;
+
+  RustArcIncrementStrongCountFnType
       get rust_arc_increment_strong_count_ZkLinkSigner => wire
           .rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedrust_asyncRwLockZkLinkSigner;
 
@@ -3633,6 +3740,14 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     return Withdraw.dcoDecode(raw as List<dynamic>);
+  }
+
+  @protected
+  ZkLinkSignature
+      dco_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedrust_asyncRwLockZkLinkSignature(
+          dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return ZkLinkSignature.dcoDecode(raw as List<dynamic>);
   }
 
   @protected
@@ -3812,6 +3927,14 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  ZkLinkSignature
+      dco_decode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedrust_asyncRwLockZkLinkSignature(
+          dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return ZkLinkSignature.dcoDecode(raw as List<dynamic>);
+  }
+
+  @protected
   ZkLinkSigner
       dco_decode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedrust_asyncRwLockZkLinkSigner(
           dynamic raw) {
@@ -3972,6 +4095,14 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  ZkLinkSignature
+      dco_decode_RustOpaque_flutter_rust_bridgefor_generatedrust_asyncRwLockZkLinkSignature(
+          dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return ZkLinkSignature.dcoDecode(raw as List<dynamic>);
+  }
+
+  @protected
   ZkLinkSigner
       dco_decode_RustOpaque_flutter_rust_bridgefor_generatedrust_asyncRwLockZkLinkSigner(
           dynamic raw) {
@@ -4069,6 +4200,12 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   Uint32List dco_decode_list_prim_u_32_strict(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     return raw as Uint32List;
+  }
+
+  @protected
+  List<int> dco_decode_list_prim_u_8_loose(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return raw as List<int>;
   }
 
   @protected
@@ -4304,6 +4441,15 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  ZkLinkSignature
+      sse_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedrust_asyncRwLockZkLinkSignature(
+          SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    return ZkLinkSignature.sseDecode(
+        sse_decode_usize(deserializer), sse_decode_i_32(deserializer));
+  }
+
+  @protected
   ZkLinkSigner
       sse_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedrust_asyncRwLockZkLinkSigner(
           SseDeserializer deserializer) {
@@ -4502,6 +4648,15 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  ZkLinkSignature
+      sse_decode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedrust_asyncRwLockZkLinkSignature(
+          SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    return ZkLinkSignature.sseDecode(
+        sse_decode_usize(deserializer), sse_decode_i_32(deserializer));
+  }
+
+  @protected
   ZkLinkSigner
       sse_decode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedrust_asyncRwLockZkLinkSigner(
           SseDeserializer deserializer) {
@@ -4682,6 +4837,15 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  ZkLinkSignature
+      sse_decode_RustOpaque_flutter_rust_bridgefor_generatedrust_asyncRwLockZkLinkSignature(
+          SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    return ZkLinkSignature.sseDecode(
+        sse_decode_usize(deserializer), sse_decode_i_32(deserializer));
+  }
+
+  @protected
   ZkLinkSigner
       sse_decode_RustOpaque_flutter_rust_bridgefor_generatedrust_asyncRwLockZkLinkSigner(
           SseDeserializer deserializer) {
@@ -4803,6 +4967,13 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     // Codec=Sse (Serialization based), see doc to use other codecs
     var len_ = sse_decode_i_32(deserializer);
     return deserializer.buffer.getUint32List(len_);
+  }
+
+  @protected
+  List<int> sse_decode_list_prim_u_8_loose(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var len_ = sse_decode_i_32(deserializer);
+    return deserializer.buffer.getUint8List(len_);
   }
 
   @protected
@@ -5033,6 +5204,14 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  int cst_encode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedrust_asyncRwLockZkLinkSignature(
+      ZkLinkSignature raw) {
+    // Codec=Cst (C-struct based), see doc to use other codecs
+// ignore: invalid_use_of_internal_member
+    return raw.cstEncode(move: true);
+  }
+
+  @protected
   int cst_encode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedrust_asyncRwLockZkLinkSigner(
       ZkLinkSigner raw) {
     // Codec=Cst (C-struct based), see doc to use other codecs
@@ -5209,6 +5388,14 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  int cst_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedrust_asyncRwLockZkLinkSignature(
+      ZkLinkSignature raw) {
+    // Codec=Cst (C-struct based), see doc to use other codecs
+// ignore: invalid_use_of_internal_member
+    return raw.cstEncode(move: false);
+  }
+
+  @protected
   int cst_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedrust_asyncRwLockZkLinkSigner(
       ZkLinkSigner raw) {
     // Codec=Cst (C-struct based), see doc to use other codecs
@@ -5363,6 +5550,14 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   @protected
   int cst_encode_RustOpaque_flutter_rust_bridgefor_generatedrust_asyncRwLockWithdraw(
       Withdraw raw) {
+    // Codec=Cst (C-struct based), see doc to use other codecs
+// ignore: invalid_use_of_internal_member
+    return raw.cstEncode();
+  }
+
+  @protected
+  int cst_encode_RustOpaque_flutter_rust_bridgefor_generatedrust_asyncRwLockZkLinkSignature(
+      ZkLinkSignature raw) {
     // Codec=Cst (C-struct based), see doc to use other codecs
 // ignore: invalid_use_of_internal_member
     return raw.cstEncode();
@@ -5585,6 +5780,14 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
 
   @protected
   void
+      sse_encode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedrust_asyncRwLockZkLinkSignature(
+          ZkLinkSignature self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_usize(self.sseEncode(move: true), serializer);
+  }
+
+  @protected
+  void
       sse_encode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedrust_asyncRwLockZkLinkSigner(
           ZkLinkSigner self, SseSerializer serializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
@@ -5761,6 +5964,14 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
 
   @protected
   void
+      sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedrust_asyncRwLockZkLinkSignature(
+          ZkLinkSignature self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_usize(self.sseEncode(move: false), serializer);
+  }
+
+  @protected
+  void
       sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedrust_asyncRwLockZkLinkSigner(
           ZkLinkSigner self, SseSerializer serializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
@@ -5921,6 +6132,14 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
 
   @protected
   void
+      sse_encode_RustOpaque_flutter_rust_bridgefor_generatedrust_asyncRwLockZkLinkSignature(
+          ZkLinkSignature self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_usize(self.sseEncode(move: null), serializer);
+  }
+
+  @protected
+  void
       sse_encode_RustOpaque_flutter_rust_bridgefor_generatedrust_asyncRwLockZkLinkSigner(
           ZkLinkSigner self, SseSerializer serializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
@@ -6026,6 +6245,15 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     // Codec=Sse (Serialization based), see doc to use other codecs
     sse_encode_i_32(self.length, serializer);
     serializer.buffer.putUint32List(self);
+  }
+
+  @protected
+  void sse_encode_list_prim_u_8_loose(
+      List<int> self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_i_32(self.length, serializer);
+    serializer.buffer
+        .putUint8List(self is Uint8List ? self : Uint8List.fromList(self));
   }
 
   @protected

@@ -167,6 +167,15 @@ impl CstDecode<Withdraw> for usize {
         CstDecode::<RustOpaqueNom<flutter_rust_bridge::for_generated::rust_async::RwLock<Withdraw>>>::cst_decode(self).rust_auto_opaque_decode_owned()
     }
 }
+impl CstDecode<ZkLinkSignature> for usize {
+    // Codec=Cst (C-struct based), see doc to use other codecs
+    fn cst_decode(self) -> ZkLinkSignature {
+        CstDecode::<
+            RustOpaqueNom<flutter_rust_bridge::for_generated::rust_async::RwLock<ZkLinkSignature>>,
+        >::cst_decode(self)
+        .rust_auto_opaque_decode_owned()
+    }
+}
 impl CstDecode<ZkLinkSigner> for usize {
     // Codec=Cst (C-struct based), see doc to use other codecs
     fn cst_decode(self) -> ZkLinkSigner {
@@ -375,6 +384,19 @@ impl CstDecode<RustOpaqueNom<flutter_rust_bridge::for_generated::rust_async::RwL
         unsafe { decode_rust_opaque_nom(self as _) }
     }
 }
+impl
+    CstDecode<
+        RustOpaqueNom<flutter_rust_bridge::for_generated::rust_async::RwLock<ZkLinkSignature>>,
+    > for usize
+{
+    // Codec=Cst (C-struct based), see doc to use other codecs
+    fn cst_decode(
+        self,
+    ) -> RustOpaqueNom<flutter_rust_bridge::for_generated::rust_async::RwLock<ZkLinkSignature>>
+    {
+        unsafe { decode_rust_opaque_nom(self as _) }
+    }
+}
 impl CstDecode<RustOpaqueNom<flutter_rust_bridge::for_generated::rust_async::RwLock<ZkLinkSigner>>>
     for usize
 {
@@ -456,6 +478,15 @@ impl CstDecode<Vec<u32>> for *mut wire_cst_list_prim_u_32_loose {
 impl CstDecode<Vec<u32>> for *mut wire_cst_list_prim_u_32_strict {
     // Codec=Cst (C-struct based), see doc to use other codecs
     fn cst_decode(self) -> Vec<u32> {
+        unsafe {
+            let wrap = flutter_rust_bridge::for_generated::box_from_leak_ptr(self);
+            flutter_rust_bridge::for_generated::vec_from_leak_ptr(wrap.ptr, wrap.len)
+        }
+    }
+}
+impl CstDecode<Vec<u8>> for *mut wire_cst_list_prim_u_8_loose {
+    // Codec=Cst (C-struct based), see doc to use other codecs
+    fn cst_decode(self) -> Vec<u8> {
         unsafe {
             let wrap = flutter_rust_bridge::for_generated::box_from_leak_ptr(self);
             flutter_rust_bridge::for_generated::vec_from_leak_ptr(wrap.ptr, wrap.len)
@@ -1306,6 +1337,20 @@ pub extern "C" fn frbgen_zklink_wire_Withdraw_to_json(
 }
 
 #[no_mangle]
+pub extern "C" fn frbgen_zklink_wire_ZkLinkSignature_get_pubkey(
+    that: usize,
+) -> flutter_rust_bridge::for_generated::WireSyncRust2DartDco {
+    wire_ZkLinkSignature_get_pubkey_impl(that)
+}
+
+#[no_mangle]
+pub extern "C" fn frbgen_zklink_wire_ZkLinkSignature_get_signature(
+    that: usize,
+) -> flutter_rust_bridge::for_generated::WireSyncRust2DartDco {
+    wire_ZkLinkSignature_get_signature_impl(that)
+}
+
+#[no_mangle]
 pub extern "C" fn frbgen_zklink_wire_ZkLinkSigner_eth_sig(
     sig: *mut wire_cst_list_prim_u_8_strict,
 ) -> flutter_rust_bridge::for_generated::WireSyncRust2DartDco {
@@ -1324,6 +1369,14 @@ pub extern "C" fn frbgen_zklink_wire_ZkLinkSigner_get_pubkey_hash(
     that: usize,
 ) -> flutter_rust_bridge::for_generated::WireSyncRust2DartDco {
     wire_ZkLinkSigner_get_pubkey_hash_impl(that)
+}
+
+#[no_mangle]
+pub extern "C" fn frbgen_zklink_wire_ZkLinkSigner_sign_musig(
+    that: usize,
+    msg: *mut wire_cst_list_prim_u_8_loose,
+) -> flutter_rust_bridge::for_generated::WireSyncRust2DartDco {
+    wire_ZkLinkSigner_sign_musig_impl(that, msg)
 }
 
 #[no_mangle]
@@ -1681,6 +1734,24 @@ pub extern "C" fn frbgen_zklink_rust_arc_decrement_strong_count_RustOpaque_flutt
 }
 
 #[no_mangle]
+pub extern "C" fn frbgen_zklink_rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedrust_asyncRwLockZkLinkSignature(
+    ptr: *const std::ffi::c_void,
+) {
+    unsafe {
+        StdArc::<flutter_rust_bridge::for_generated::rust_async::RwLock<ZkLinkSignature>>::increment_strong_count(ptr as _);
+    }
+}
+
+#[no_mangle]
+pub extern "C" fn frbgen_zklink_rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedrust_asyncRwLockZkLinkSignature(
+    ptr: *const std::ffi::c_void,
+) {
+    unsafe {
+        StdArc::<flutter_rust_bridge::for_generated::rust_async::RwLock<ZkLinkSignature>>::decrement_strong_count(ptr as _);
+    }
+}
+
+#[no_mangle]
 pub extern "C" fn frbgen_zklink_rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedrust_asyncRwLockZkLinkSigner(
     ptr: *const std::ffi::c_void,
 ) {
@@ -1758,6 +1829,17 @@ pub extern "C" fn frbgen_zklink_cst_new_list_prim_u_32_strict(
 }
 
 #[no_mangle]
+pub extern "C" fn frbgen_zklink_cst_new_list_prim_u_8_loose(
+    len: i32,
+) -> *mut wire_cst_list_prim_u_8_loose {
+    let ans = wire_cst_list_prim_u_8_loose {
+        ptr: flutter_rust_bridge::for_generated::new_leak_vec_ptr(Default::default(), len),
+        len,
+    };
+    flutter_rust_bridge::for_generated::new_leak_box_ptr(ans)
+}
+
+#[no_mangle]
 pub extern "C" fn frbgen_zklink_cst_new_list_prim_u_8_strict(
     len: i32,
 ) -> *mut wire_cst_list_prim_u_8_strict {
@@ -1806,6 +1888,12 @@ pub struct wire_cst_list_prim_u_32_loose {
 #[derive(Clone, Copy)]
 pub struct wire_cst_list_prim_u_32_strict {
     ptr: *mut u32,
+    len: i32,
+}
+#[repr(C)]
+#[derive(Clone, Copy)]
+pub struct wire_cst_list_prim_u_8_loose {
+    ptr: *mut u8,
     len: i32,
 }
 #[repr(C)]

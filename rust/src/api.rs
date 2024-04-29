@@ -4,15 +4,17 @@ use serde_json::to_string;
 use std::str::FromStr;
 use std::time::UNIX_EPOCH;
 use zklink_sdk_interface::signer::{L1SignerType, Signer as InnerSigner};
-use zklink_sdk_signers::eth_signer::H256;
+use zklink_sdk_signers::eth_signer::{PackedEthSignature, H256};
 use zklink_sdk_signers::starknet_signer::StarkEcdsaSignature;
-use zklink_sdk_signers::zklink_signer::ZkLinkSigner as InnerZkLinkSigner;
-use zklink_sdk_signers::{eth_signer::PackedEthSignature, zklink_signer::PubKeyHash};
-use zklink_sdk_types::basic_types::BigUint;
-use zklink_sdk_types::basic_types::{GetBytes, ZkLinkAddress};
+use zklink_sdk_signers::zklink_signer::{
+    signature::ZkLinkSignature as InnerZkLinkSignature, PubKeyHash,
+    ZkLinkSigner as InnerZkLinkSigner,
+};
+use zklink_sdk_types::basic_types::{BigUint, GetBytes, ZkLinkAddress};
 use zklink_sdk_types::tx_builder::*;
-use zklink_sdk_types::tx_type::change_pubkey::ChangePubKey as InnerChangePubKey;
-use zklink_sdk_types::tx_type::change_pubkey::{ChangePubKeyAuthData, Create2Data};
+use zklink_sdk_types::tx_type::change_pubkey::{
+    ChangePubKey as InnerChangePubKey, ChangePubKeyAuthData, Create2Data,
+};
 use zklink_sdk_types::tx_type::contract::{
     AutoDeleveraging as InnerAutoDeleveraging, Contract as InnerContract,
     ContractMatching as InnerContractMatching, ContractPrice as InnerContractPrice,
@@ -42,6 +44,23 @@ macro_rules! tx_default {
             Ok(to_string(&self.inner)?)
         }
     };
+}
+
+#[frb(opaque)]
+pub struct ZkLinkSignature {
+    pub inner: InnerZkLinkSignature,
+}
+
+impl ZkLinkSignature {
+    #[frb(sync)]
+    pub fn get_pubkey(&self) -> String {
+        self.inner.pub_key.as_hex()
+    }
+
+    #[frb(sync)]
+    pub fn get_signature(&self) -> String {
+        self.inner.signature.as_hex()
+    }
 }
 
 #[frb(opaque)]
@@ -76,6 +95,13 @@ impl ZkLinkSigner {
     #[frb(sync)]
     pub fn get_pubkey_hash(&self) -> String {
         self.inner.public_key().public_key_hash().as_hex()
+    }
+
+    #[frb(sync)]
+    pub fn sign_musig(&self, msg: Vec<u8>) -> Result<ZkLinkSignature> {
+        Ok(ZkLinkSignature {
+            inner: self.inner.sign_musig(&msg)?,
+        })
     }
 }
 

@@ -86,6 +86,10 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
       ._rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedrust_asyncRwLockWithdrawPtr;
 
   CrossPlatformFinalizerArg
+      get rust_arc_decrement_strong_count_ZkLinkSignaturePtr => wire
+          ._rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedrust_asyncRwLockZkLinkSignaturePtr;
+
+  CrossPlatformFinalizerArg
       get rust_arc_decrement_strong_count_ZkLinkSignerPtr => wire
           ._rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedrust_asyncRwLockZkLinkSignerPtr;
 
@@ -185,6 +189,11 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   @protected
   Withdraw
       dco_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedrust_asyncRwLockWithdraw(
+          dynamic raw);
+
+  @protected
+  ZkLinkSignature
+      dco_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedrust_asyncRwLockZkLinkSignature(
           dynamic raw);
 
   @protected
@@ -298,6 +307,11 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
           dynamic raw);
 
   @protected
+  ZkLinkSignature
+      dco_decode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedrust_asyncRwLockZkLinkSignature(
+          dynamic raw);
+
+  @protected
   ZkLinkSigner
       dco_decode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedrust_asyncRwLockZkLinkSigner(
           dynamic raw);
@@ -398,6 +412,11 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
           dynamic raw);
 
   @protected
+  ZkLinkSignature
+      dco_decode_RustOpaque_flutter_rust_bridgefor_generatedrust_asyncRwLockZkLinkSignature(
+          dynamic raw);
+
+  @protected
   ZkLinkSigner
       dco_decode_RustOpaque_flutter_rust_bridgefor_generatedrust_asyncRwLockZkLinkSigner(
           dynamic raw);
@@ -445,6 +464,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   Uint32List dco_decode_list_prim_u_32_strict(dynamic raw);
+
+  @protected
+  List<int> dco_decode_list_prim_u_8_loose(dynamic raw);
 
   @protected
   Uint8List dco_decode_list_prim_u_8_strict(dynamic raw);
@@ -572,6 +594,11 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
           SseDeserializer deserializer);
 
   @protected
+  ZkLinkSignature
+      sse_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedrust_asyncRwLockZkLinkSignature(
+          SseDeserializer deserializer);
+
+  @protected
   ZkLinkSigner
       sse_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedrust_asyncRwLockZkLinkSigner(
           SseDeserializer deserializer);
@@ -682,6 +709,11 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
           SseDeserializer deserializer);
 
   @protected
+  ZkLinkSignature
+      sse_decode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedrust_asyncRwLockZkLinkSignature(
+          SseDeserializer deserializer);
+
+  @protected
   ZkLinkSigner
       sse_decode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedrust_asyncRwLockZkLinkSigner(
           SseDeserializer deserializer);
@@ -782,6 +814,11 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
           SseDeserializer deserializer);
 
   @protected
+  ZkLinkSignature
+      sse_decode_RustOpaque_flutter_rust_bridgefor_generatedrust_asyncRwLockZkLinkSignature(
+          SseDeserializer deserializer);
+
+  @protected
   ZkLinkSigner
       sse_decode_RustOpaque_flutter_rust_bridgefor_generatedrust_asyncRwLockZkLinkSigner(
           SseDeserializer deserializer);
@@ -829,6 +866,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   Uint32List sse_decode_list_prim_u_32_strict(SseDeserializer deserializer);
+
+  @protected
+  List<int> sse_decode_list_prim_u_8_loose(SseDeserializer deserializer);
 
   @protected
   Uint8List sse_decode_list_prim_u_8_strict(SseDeserializer deserializer);
@@ -972,6 +1012,15 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   }
 
   @protected
+  ffi.Pointer<wire_cst_list_prim_u_8_loose> cst_encode_list_prim_u_8_loose(
+      List<int> raw) {
+    // Codec=Cst (C-struct based), see doc to use other codecs
+    final ans = wire.cst_new_list_prim_u_8_loose(raw.length);
+    ans.ref.ptr.asTypedList(raw.length).setAll(0, raw);
+    return ans;
+  }
+
+  @protected
   ffi.Pointer<wire_cst_list_prim_u_8_strict> cst_encode_list_prim_u_8_strict(
       Uint8List raw) {
     // Codec=Cst (C-struct based), see doc to use other codecs
@@ -1076,6 +1125,10 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
       Withdraw raw);
 
   @protected
+  int cst_encode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedrust_asyncRwLockZkLinkSignature(
+      ZkLinkSignature raw);
+
+  @protected
   int cst_encode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedrust_asyncRwLockZkLinkSigner(
       ZkLinkSigner raw);
 
@@ -1164,6 +1217,10 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
       Withdraw raw);
 
   @protected
+  int cst_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedrust_asyncRwLockZkLinkSignature(
+      ZkLinkSignature raw);
+
+  @protected
   int cst_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedrust_asyncRwLockZkLinkSigner(
       ZkLinkSigner raw);
 
@@ -1242,6 +1299,10 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   @protected
   int cst_encode_RustOpaque_flutter_rust_bridgefor_generatedrust_asyncRwLockWithdraw(
       Withdraw raw);
+
+  @protected
+  int cst_encode_RustOpaque_flutter_rust_bridgefor_generatedrust_asyncRwLockZkLinkSignature(
+      ZkLinkSignature raw);
 
   @protected
   int cst_encode_RustOpaque_flutter_rust_bridgefor_generatedrust_asyncRwLockZkLinkSigner(
@@ -1372,6 +1433,11 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   void
+      sse_encode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedrust_asyncRwLockZkLinkSignature(
+          ZkLinkSignature self, SseSerializer serializer);
+
+  @protected
+  void
       sse_encode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedrust_asyncRwLockZkLinkSigner(
           ZkLinkSigner self, SseSerializer serializer);
 
@@ -1482,6 +1548,11 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   void
+      sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedrust_asyncRwLockZkLinkSignature(
+          ZkLinkSignature self, SseSerializer serializer);
+
+  @protected
+  void
       sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedrust_asyncRwLockZkLinkSigner(
           ZkLinkSigner self, SseSerializer serializer);
 
@@ -1582,6 +1653,11 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   void
+      sse_encode_RustOpaque_flutter_rust_bridgefor_generatedrust_asyncRwLockZkLinkSignature(
+          ZkLinkSignature self, SseSerializer serializer);
+
+  @protected
+  void
       sse_encode_RustOpaque_flutter_rust_bridgefor_generatedrust_asyncRwLockZkLinkSigner(
           ZkLinkSigner self, SseSerializer serializer);
 
@@ -1630,6 +1706,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   @protected
   void sse_encode_list_prim_u_32_strict(
       Uint32List self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_list_prim_u_8_loose(List<int> self, SseSerializer serializer);
 
   @protected
   void sse_encode_list_prim_u_8_strict(
@@ -3517,6 +3596,36 @@ class RustLibWire implements BaseWire {
   late final _wire_Withdraw_to_json = _wire_Withdraw_to_jsonPtr
       .asFunction<WireSyncRust2DartDco Function(int)>();
 
+  WireSyncRust2DartDco wire_ZkLinkSignature_get_pubkey(
+    int that,
+  ) {
+    return _wire_ZkLinkSignature_get_pubkey(
+      that,
+    );
+  }
+
+  late final _wire_ZkLinkSignature_get_pubkeyPtr =
+      _lookup<ffi.NativeFunction<WireSyncRust2DartDco Function(ffi.UintPtr)>>(
+          'frbgen_zklink_wire_ZkLinkSignature_get_pubkey');
+  late final _wire_ZkLinkSignature_get_pubkey =
+      _wire_ZkLinkSignature_get_pubkeyPtr
+          .asFunction<WireSyncRust2DartDco Function(int)>();
+
+  WireSyncRust2DartDco wire_ZkLinkSignature_get_signature(
+    int that,
+  ) {
+    return _wire_ZkLinkSignature_get_signature(
+      that,
+    );
+  }
+
+  late final _wire_ZkLinkSignature_get_signaturePtr =
+      _lookup<ffi.NativeFunction<WireSyncRust2DartDco Function(ffi.UintPtr)>>(
+          'frbgen_zklink_wire_ZkLinkSignature_get_signature');
+  late final _wire_ZkLinkSignature_get_signature =
+      _wire_ZkLinkSignature_get_signaturePtr
+          .asFunction<WireSyncRust2DartDco Function(int)>();
+
   WireSyncRust2DartDco wire_ZkLinkSigner_eth_sig(
     ffi.Pointer<wire_cst_list_prim_u_8_strict> sig,
   ) {
@@ -3563,6 +3672,26 @@ class RustLibWire implements BaseWire {
   late final _wire_ZkLinkSigner_get_pubkey_hash =
       _wire_ZkLinkSigner_get_pubkey_hashPtr
           .asFunction<WireSyncRust2DartDco Function(int)>();
+
+  WireSyncRust2DartDco wire_ZkLinkSigner_sign_musig(
+    int that,
+    ffi.Pointer<wire_cst_list_prim_u_8_loose> msg,
+  ) {
+    return _wire_ZkLinkSigner_sign_musig(
+      that,
+      msg,
+    );
+  }
+
+  late final _wire_ZkLinkSigner_sign_musigPtr = _lookup<
+          ffi.NativeFunction<
+              WireSyncRust2DartDco Function(
+                  ffi.UintPtr, ffi.Pointer<wire_cst_list_prim_u_8_loose>)>>(
+      'frbgen_zklink_wire_ZkLinkSigner_sign_musig');
+  late final _wire_ZkLinkSigner_sign_musig =
+      _wire_ZkLinkSigner_sign_musigPtr.asFunction<
+          WireSyncRust2DartDco Function(
+              int, ffi.Pointer<wire_cst_list_prim_u_8_loose>)>();
 
   WireSyncRust2DartDco wire_ZkLinkSigner_starknet_sig(
     ffi.Pointer<wire_cst_list_prim_u_8_strict> sig,
@@ -4205,6 +4334,38 @@ class RustLibWire implements BaseWire {
           .asFunction<void Function(ffi.Pointer<ffi.Void>)>();
 
   void
+      rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedrust_asyncRwLockZkLinkSignature(
+    ffi.Pointer<ffi.Void> ptr,
+  ) {
+    return _rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedrust_asyncRwLockZkLinkSignature(
+      ptr,
+    );
+  }
+
+  late final _rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedrust_asyncRwLockZkLinkSignaturePtr =
+      _lookup<ffi.NativeFunction<ffi.Void Function(ffi.Pointer<ffi.Void>)>>(
+          'frbgen_zklink_rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedrust_asyncRwLockZkLinkSignature');
+  late final _rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedrust_asyncRwLockZkLinkSignature =
+      _rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedrust_asyncRwLockZkLinkSignaturePtr
+          .asFunction<void Function(ffi.Pointer<ffi.Void>)>();
+
+  void
+      rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedrust_asyncRwLockZkLinkSignature(
+    ffi.Pointer<ffi.Void> ptr,
+  ) {
+    return _rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedrust_asyncRwLockZkLinkSignature(
+      ptr,
+    );
+  }
+
+  late final _rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedrust_asyncRwLockZkLinkSignaturePtr =
+      _lookup<ffi.NativeFunction<ffi.Void Function(ffi.Pointer<ffi.Void>)>>(
+          'frbgen_zklink_rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedrust_asyncRwLockZkLinkSignature');
+  late final _rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedrust_asyncRwLockZkLinkSignature =
+      _rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedrust_asyncRwLockZkLinkSignaturePtr
+          .asFunction<void Function(ffi.Pointer<ffi.Void>)>();
+
+  void
       rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedrust_asyncRwLockZkLinkSigner(
     ffi.Pointer<ffi.Void> ptr,
   ) {
@@ -4390,6 +4551,21 @@ class RustLibWire implements BaseWire {
   late final _cst_new_list_prim_u_32_strict = _cst_new_list_prim_u_32_strictPtr
       .asFunction<ffi.Pointer<wire_cst_list_prim_u_32_strict> Function(int)>();
 
+  ffi.Pointer<wire_cst_list_prim_u_8_loose> cst_new_list_prim_u_8_loose(
+    int len,
+  ) {
+    return _cst_new_list_prim_u_8_loose(
+      len,
+    );
+  }
+
+  late final _cst_new_list_prim_u_8_loosePtr = _lookup<
+      ffi.NativeFunction<
+          ffi.Pointer<wire_cst_list_prim_u_8_loose> Function(
+              ffi.Int32)>>('frbgen_zklink_cst_new_list_prim_u_8_loose');
+  late final _cst_new_list_prim_u_8_loose = _cst_new_list_prim_u_8_loosePtr
+      .asFunction<ffi.Pointer<wire_cst_list_prim_u_8_loose> Function(int)>();
+
   ffi.Pointer<wire_cst_list_prim_u_8_strict> cst_new_list_prim_u_8_strict(
     int len,
   ) {
@@ -4466,6 +4642,13 @@ final class wire_cst_list_prim_u_32_loose extends ffi.Struct {
 final class wire_cst_list_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedrust_asyncRwLockFundingInfo
     extends ffi.Struct {
   external ffi.Pointer<ffi.UintPtr> ptr;
+
+  @ffi.Int32()
+  external int len;
+}
+
+final class wire_cst_list_prim_u_8_loose extends ffi.Struct {
+  external ffi.Pointer<ffi.Uint8> ptr;
 
   @ffi.Int32()
   external int len;
