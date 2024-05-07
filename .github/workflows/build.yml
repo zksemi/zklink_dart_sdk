@@ -55,8 +55,8 @@ jobs:
         rustup override set stable
         rustup target add --toolchain stable ${{ matrix.target }}
         cargo build --release --target=${{ matrix.target }}
-        mv target/${{ matrix.target }}/release/libzklink.dylib .
-        tar acf ../${{ matrix.target }}.tar.xz libzklink.dylib
+        mv target/${{ matrix.target }}/release/*.dylib .
+        tar acf ../${{ matrix.target }}.tar.xz *.dylib
     - name: Upload
       uses: svenstaro/upload-release-action@v2
       with:
@@ -88,8 +88,8 @@ jobs:
         rustup target add --toolchain stable ${{ matrix.target }}
         cargo install cross --git https://github.com/cross-rs/cross
         cross build --release --target=${{ matrix.target }}
-        mv target/${{ matrix.target }}/release/libzklink.so .
-        tar acf ../${{ matrix.target }}.tar.xz libzklink.so
+        mv target/${{ matrix.target }}/release/*.so .
+        tar acf ../${{ matrix.target }}.tar.xz *.so
     - name: Upload
       uses: svenstaro/upload-release-action@v2
       with:
